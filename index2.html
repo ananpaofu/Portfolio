@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>湖北非遗工艺小镇地图</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+<style>
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+.popup-custom { font-size: 12px; line-height: 1.4; }
+.popup-custom h4 { margin:0 0 6px 0; font-size:14px; color:#222; }
+
+.control-bar {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #2b2b2b;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 9999;
+}
+.control-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    color: white;
+}
+.btn-tour { background: #ff6b35; }
+.btn-tour:hover { background: #e05a2a; }
+.btn-pan { background: #3a4b9b; }
+.btn-pan:hover { background: #2f3d80; }
+.btn-stop { background: #d93030; }
+.btn-stop:hover { background: #c02020; }
+.btn-route { background: #2d9cdb; }
+.btn-route:hover { background: #258cd1; }
+.status-box {
+    padding: 8px 14px;
+    background: #444444;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #f5c518;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="control-bar">
+    <button class="control-btn btn-tour" id="btnTour">
+        <span>✈️</span>全景巡航
+    </button>
+    <button class="control-btn btn-pan" id="btnPan">
+        <span>📍</span>平移漫游
+    </button>
+    <button class="control-btn btn-stop" id="btnStop">
+        <span>⏹️</span>停止移动
+    </button>
+    <button class="control-btn btn-route" id="btnRoute">
+        <span>🧭</span>路线显示
+    </button>
+    <div class="status-box">
+        <span>📟</span>状态：<span id="statusText">待命</span>
+    </div>
+</div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiZGh0amVkeCIsImEiOiJjbW41dmNmc3UwZjlsMnJxNXIxZmJuMGhmIn0.WD7ZXG5clx8N8-vyA0vE6A';
+
+const map = new mapboxgl.Map({
+    container: 'map',
+    center: [112.5, 31.0],
+    style: 'mapbox://styles/dhtjedx/cmnd1i4ew000401sgeie52onv',
+    zoom: 7,
+    doubleClickZoom: false,
+    pitch: 55,
+    bearing: 0
+});
+
+let isTouring = false;
+let isPanning = false;
+let tourTimer = null;
+let currentRouteIndex = 0;
+const speedRatio = 0.7;
+let routeVisible = true;
+
+// 3D地形 + 红棕超透明3D建筑 + 鲜明蓝绿色水体
+function enable3DTerrainAndBuildingsAndWater() {
+    map.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14
+    });
+    map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.0 });
+
+    map.addLayer({
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 12,
+        paint: {
+            'fill-extrusion-color': '#4a2a2a',
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-base': ['get', 'min_height'],
+            'fill-extrusion-opacity': 0.25
+        }
+    });
+
+    map.setPaintProperty('water', 'fill-color', '#4ecdc4');
+    map.setPaintProperty('water', 'fill-opacity', 0.9);
+}
+
+// 漫游路线
+const baseRoute = [
+    { center: [110.99, 30.83], zoom: 10, duration: 4000, type: 'fly', pitch: 55, bearing: 30 },
+    { center: [110.72, 32.06], zoom: 10, duration: 4000, type: 'fly', pitch: 55, bearing: -20 },
+    { center: [109.71, 32.32], zoom: 10, duration: 4000, type: 'pan', pitch: 55, bearing: 45 },
+    { center: [109.5, 30.27], zoom: 10, duration: 4000, type: 'pan', pitch: 55, bearing: -30 },
+    { center: [109.47, 29.99], zoom: 11, duration: 3000, type: 'fly', pitch: 60, bearing: 60 },
+    { center: [112.65, 30.38], zoom: 10, duration: 5000, type: 'fly', pitch: 55, bearing: -45 },
+    { center: [113.28, 30.29], zoom: 10, duration: 3000, type: 'pan', pitch: 55, bearing: 30 },
+    { center: [113.78, 31.01], zoom: 10, duration: 3000, type: 'pan', pitch: 55, bearing: -20 },
+    { center: [113.75, 29.54], zoom: 10, duration: 4000, type: 'fly', pitch: 60, bearing: 45 },
+    { center: [115.95, 30.17], zoom: 10, duration: 5000, type: 'fly', pitch: 55, bearing: -30 },
+    { center: [112.0, 30.8], zoom: 7, duration: 6000, type: 'fly', pitch: 55, bearing: 0 }
+];
+
+// 正常路线：点对点、无多余线头
+const realRoutePoints = [
+    [110.99, 30.83],
+    [110.72, 32.06],
+    [109.71, 32.32],
+    [109.5, 30.27],
+    [109.47, 29.99],
+    [112.65, 30.38],
+    [113.28, 30.29],
+    [113.78, 31.01],
+    [113.75, 29.54],
+    [115.95, 30.17]
+];
+
+const tourRoute = baseRoute.map(item => ({
+    ...item, duration: item.duration * speedRatio
+}));
+const panRoute = baseRoute.map(item => ({
+    ...item, type: 'pan', duration: item.duration * speedRatio
+}));
+
+const routeLineData = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": realRoutePoints
+        }
+    }]
+};
+
+function updateStatus(state) {
+    const statusMap = {
+        'touring': '全景巡航中',
+        'panning': '平移漫游中',
+        'stopped': '已停止',
+        'idle': '待命'
+    };
+    document.getElementById('statusText').textContent = statusMap[state];
+}
+
+function stopAllMovement() {
+    clearTimeout(tourTimer);
+    tourTimer = null;
+    isTouring = false;
+    isPanning = false;
+    currentRouteIndex = 0;
+    updateStatus('idle');
+    map.dragPan.enable();
+    map.dragRotate.enable();
+    map.touchZoomRotate.enable();
+}
+
+function startTour() {
+    stopAllMovement();
+    isTouring = true;
+    updateStatus('touring');
+    map.dragPan.disable();
+    map.dragRotate.disable();
+    map.touchZoomRotate.disable();
+
+    function tourNext() {
+        if (currentRouteIndex >= tourRoute.length) {
+            currentRouteIndex = 0;
+        }
+        const step = tourRoute[currentRouteIndex];
+        if (step.type === 'fly') {
+            map.flyTo({
+                center: step.center,
+                zoom: step.zoom,
+                pitch: step.pitch,
+                bearing: step.bearing,
+                duration: step.duration,
+                essential: true
+            });
+        } else {
+            map.panTo(step.center, {
+                duration: step.duration,
+                pitch: step.pitch,
+                bearing: step.bearing
+            });
+        }
+        currentRouteIndex++;
+        tourTimer = setTimeout(tourNext, step.duration + 800);
+    }
+    tourNext();
+}
+
+function startPan() {
+    stopAllMovement();
+    isPanning = true;
+    updateStatus('panning');
+    map.dragPan.disable();
+    map.dragRotate.disable();
+    map.touchZoomRotate.disable();
+
+    function panNext() {
+        if (currentRouteIndex >= panRoute.length) {
+            currentRouteIndex = 0;
+        }
+        const step = panRoute[currentRouteIndex];
+        map.panTo(step.center, {
+            duration: step.duration,
+            pitch: step.pitch,
+            bearing: step.bearing
+        });
+        currentRouteIndex++;
+        tourTimer = setTimeout(panNext, step.duration + 800);
+    }
+    panNext();
+}
+
+// 路线显示/隐藏
+function toggleRoute() {
+    routeVisible = !routeVisible;
+    map.setLayoutProperty('route-line-layer', 'visibility', routeVisible ? 'visible' : 'none');
+    document.getElementById('btnRoute').innerHTML = routeVisible ? '<span>🧭</span>路线隐藏' : '<span>🧭</span>路线显示';
+}
+
+const ichData = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 1,
+                "City": "Zigui, Yichang",
+                "ICH Craft Town": "Qu Yuan's Hometown ICH Alley",
+                "ICH Craft Name": "Sanlu Embroidery",
+                "ICH Level": "Provincial",
+                "Origin_Start": -475,
+                "Origin_End": -221,
+                "Mature_Start": 1368,
+                "Mature_End": 1912,
+                "Listed_Year": 1980,
+                "Keywords": "Embroidery;Warring States;Ming;Qing;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [110.99, 30.83]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 2,
+                "City": "Zigui, Yichang",
+                "ICH Craft Town": "Qu Yuan's Hometown ICH Alley",
+                "ICH Craft Name": "Xiajiang Wood Carving Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": -221,
+                "Origin_End": 220,
+                "Mature_Start": 1644,
+                "Mature_End": 1912,
+                "Listed_Year": 2010,
+                "Keywords": "Wood Carving;Qin;Han;Shipbuilding;Qing;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [110.99, 30.83]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 3,
+                "City": "Zigui, Yichang",
+                "ICH Craft Town": "Qu Yuan's Hometown ICH Alley",
+                "ICH Craft Name": "Xiajiang Bamboo Weaving Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": -2100,
+                "Origin_End": -221,
+                "Mature_Start": 1368,
+                "Mature_End": 1644,
+                "Listed_Year": 2012,
+                "Keywords": "Bamboo Weaving;Pre-Qin;Ming;Commercial System;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [110.99, 30.83]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 4,
+                "City": "Fangxian, Shiyan",
+                "ICH Craft Town": "Xiguan Impression",
+                "ICH Craft Name": "Fangxian Yellow Wine Brewing Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": -1046,
+                "Origin_End": -771,
+                "Mature_Start": 618,
+                "Mature_End": 907,
+                "Listed_Year": 2009,
+                "Keywords": "Wine Brewing;Western Zhou;Tang;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [110.72, 32.06]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 5,
+                "City": "Fangxian, Shiyan",
+                "ICH Craft Town": "Xiguan Impression",
+                "ICH Craft Name": "Tan's Wood Carving Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": 1736,
+                "Origin_End": 1795,
+                "Mature_Start": 1736,
+                "Mature_End": 1795,
+                "Listed_Year": 2015,
+                "Keywords": "Wood Carving;Qing;Qianlong;Family Craft;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [110.72, 32.06]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 6,
+                "City": "Yunmeng, Xiaogan",
+                "ICH Craft Town": "Xiangyun Bay",
+                "ICH Craft Name": "Yunmeng Fish Noodle Making Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": 1821,
+                "Origin_End": 1850,
+                "Mature_Start": 1912,
+                "Mature_End": 1949,
+                "Listed_Year": 2011,
+                "Keywords": "Food Craft;Qing;Daoguang;Republic of China;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [113.78, 31.01]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 7,
+                "City": "Chibi, Xianning",
+                "ICH Craft Town": "Yangloudong",
+                "ICH Craft Name": "Zhaoliqiao Green Brick Tea Making Craft",
+                "ICH Level": "National",
+                "Origin_Start": 618,
+                "Origin_End": 907,
+                "Mature_Start": 1736,
+                "Mature_End": 1820,
+                "Listed_Year": 2006,
+                "Keywords": "Tea Making;Tang;Qing;Jiaqing;Export;National ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [113.75, 29.54]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 8,
+                "City": "Chibi, Xianning",
+                "ICH Craft Town": "Yangloudong",
+                "ICH Craft Name": "Yangloudong Oil Paper Umbrella Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": 1368,
+                "Origin_End": 1912,
+                "Mature_Start": 1368,
+                "Mature_End": 1912,
+                "Listed_Year": 2018,
+                "Keywords": "Paper Umbrella;Ming;Qing;Tea-Horse Road;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [113.75, 29.54]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 9,
+                "City": "Enshi",
+                "ICH Craft Town": "Tujia Daughter City",
+                "ICH Craft Name": "Tujia Brocade Craft (Xilankapu)",
+                "ICH Level": "National",
+                "Origin_Start": -316,
+                "Origin_End": -316,
+                "Mature_Start": 1644,
+                "Mature_End": 1912,
+                "Listed_Year": 2006,
+                "Keywords": "Brocade;Pre-Qin;Ba People;Qing;National ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.5, 30.27]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 10,
+                "City": "Enshi",
+                "ICH Craft Town": "Tujia Daughter City",
+                "ICH Craft Name": "Nuo Mask Making Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": 618,
+                "Origin_End": 1279,
+                "Mature_Start": 1368,
+                "Mature_End": 1644,
+                "Listed_Year": 2016,
+                "Keywords": "Mask Making;Tang;Song;Nuo Opera;Ming;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.5, 30.27]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 11,
+                "City": "Xuan'en, Enshi",
+                "ICH Craft Town": "Xianshan Gongshui",
+                "ICH Craft Name": "Xuan'en Bamboo Weaving Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": -2100,
+                "Origin_End": -221,
+                "Mature_Start": 1644,
+                "Mature_End": 1912,
+                "Listed_Year": 2003,
+                "Keywords": "Bamboo Weaving;Pre-Qin;Mountain Farming;Qing;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.47, 29.99]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 12,
+                "City": "Xuan'en, Enshi",
+                "ICH Craft Town": "Xianshan Gongshui",
+                "ICH Craft Name": "Xuan'en Wood Carving Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": 1368,
+                "Origin_End": 1912,
+                "Mature_Start": 1368,
+                "Mature_End": 1912,
+                "Listed_Year": 2004,
+                "Keywords": "Wood Carving;Ming;Qing;Stilted Building;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.47, 29.99]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 13,
+                "City": "Xuan'en, Enshi",
+                "ICH Craft Town": "Xianshan Gongshui",
+                "ICH Craft Name": "Chrysanthemum Stone Carving Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": 1736,
+                "Origin_End": 1795,
+                "Mature_Start": 1736,
+                "Mature_End": 1795,
+                "Listed_Year": 2012,
+                "Keywords": "Stone Carving;Qing;Qianlong;Chrysanthemum;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.47, 29.99]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 14,
+                "City": "Qianjiang",
+                "ICH Craft Town": "Haokou Town",
+                "ICH Craft Name": "Straw Painting Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": 618,
+                "Origin_End": 1279,
+                "Mature_Start": 1644,
+                "Mature_End": 1912,
+                "Listed_Year": 2017,
+                "Keywords": "Straw Painting;Tang;Song;Folk Craft;Qing;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [112.65, 30.38]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 15,
+                "City": "Xiantao",
+                "ICH Craft Town": "Mianyang Town",
+                "ICH Craft Name": "Mianyang Paper-cut Craft",
+                "ICH Level": "National",
+                "Origin_Start": -2100,
+                "Origin_End": -221,
+                "Mature_Start": 1644,
+                "Mature_End": 1912,
+                "Listed_Year": 2006,
+                "Keywords": "Paper-cut;Pre-Qin;Qing;National ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [113.28, 30.29]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 16,
+                "City": "Xiantao",
+                "ICH Craft Town": "Mianyang Town",
+                "ICH Craft Name": "Mianyang Three-steamed Dish Craft",
+                "ICH Level": "Provincial",
+                "Origin_Start": 1360,
+                "Origin_End": 1360,
+                "Mature_Start": 1644,
+                "Mature_End": 1912,
+                "Listed_Year": 2011,
+                "Keywords": "Food Craft;Yuan;Ming;Qing;Three-steamed Dish;Provincial ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [113.28, 30.29]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 17,
+                "City": "Zhuxi, Shiyan",
+                "ICH Craft Town": "Wuling Never-Sleeping City",
+                "ICH Craft Name": "Zhuxi Steamed Pot Making Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": 1368,
+                "Origin_End": 1912,
+                "Mature_Start": 1368,
+                "Mature_End": 1912,
+                "Listed_Year": 2008,
+                "Keywords": "Food Craft;Ming;Qing;Cove Banquet;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.71, 32.32]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 18,
+                "City": "Zhuxi, Shiyan",
+                "ICH Craft Town": "Wuling Never-Sleeping City",
+                "ICH Craft Name": "Zhuxi Shadow Puppet Making Craft",
+                "ICH Level": "Municipal",
+                "Origin_Start": 618,
+                "Origin_End": 1279,
+                "Mature_Start": 1368,
+                "Mature_End": 1912,
+                "Listed_Year": 2019,
+                "Keywords": "Shadow Puppet;Tang;Song;Ming;Qing;Municipal ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [109.71, 32.32]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "No.": 19,
+                "City": "Huangmei, Huanggang",
+                "ICH Craft Town": "Dongshan Wenmei Village",
+                "ICH Craft Name": "Huangmei Cross-Stitch Craft",
+                "ICH Level": "National",
+                "Origin_Start": 618,
+                "Origin_End": 1279,
+                "Mature_Start": 1368,
+                "Mature_End": 1912,
+                "Listed_Year": 2006,
+                "Keywords": "Cross-Stitch;Tang;Song;Ming;Qing;National ICH"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [115.95, 30.17]
+            }
+        }
+    ]
+};
+
+map.on('load', function () {
+    enable3DTerrainAndBuildingsAndWater();
+
+    map.addSource('route-line', {
+        'type': 'geojson',
+        'data': routeLineData
+    });
+
+    map.addLayer({
+        'id': 'route-line-layer',
+        'type': 'line',
+        'source': 'route-line',
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': '#4a2a2a',
+            'line-width': 3,
+            'line-opacity': 0.7,
+            'line-dasharray': [3, 2]
+        }
+    });
+
+    map.addSource('ich-crafts', {
+        'type': 'geojson',
+        'data': ichData
+    });
+
+    map.addLayer({
+        'id': 'ich-circles',
+        'type': 'circle',
+        'source': 'ich-crafts',
+        'paint': {
+            'circle-radius': 7,
+            'circle-color': '#1a1a1a',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff'
+        }
+    });
+
+    map.on('click', 'ich-circles', function (e) {
+        const p = e.features[0].properties;
+        new mapboxgl.Popup({ offset: 15, className: 'popup-custom' })
+            .setLngLat(e.lngLat)
+            .setHTML(`
+                <h4>${p["ICH Craft Name"]}</h4>
+                <p>📍 ${p.City}</p>
+                <p>🏘️ ${p["ICH Craft Town"]}</p>
+                <p>🏅 ${p["ICH Level"]}</p>
+                <p>📅 ${p.Listed_Year}</p>
+                <p>🔖 ${p.Keywords}</p>
+            `)
+            .addTo(map);
+    });
+
+    map.on('dblclick', 'ich-circles', function (e) {
+        const coords = e.features[0].geometry.coordinates;
+        map.flyTo({
+            center: [coords[0], coords[1]],
+            zoom: 14,
+            duration: 1200,
+            essential: true
+        });
+    });
+
+    map.on('mouseenter', 'ich-circles', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'ich-circles', () => map.getCanvas().style.cursor = '');
+
+    updateStatus('idle');
+    setTimeout(startTour, 1500);
+});
+
+document.getElementById('btnTour').addEventListener('click', startTour);
+document.getElementById('btnPan').addEventListener('click', startPan);
+document.getElementById('btnStop').addEventListener('click', stopAllMovement);
+document.getElementById('btnRoute').addEventListener('click', toggleRoute);
+</script>
+</body>
+</html>
