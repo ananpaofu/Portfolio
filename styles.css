@@ -33,9 +33,9 @@ html::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
 
 /* 昼夜开关 */
-.theme-fab{position:fixed;top:18px;right:20px;z-index:78;width:34px;height:34px;border:1.5px solid var(--ink);border-radius:50%;background:var(--paper);font-size:15px;line-height:1;display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink);transition:transform .2s,box-shadow .2s}
-.theme-fab:hover{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
-.music-fab{right:62px}
+.theme-fab{position:fixed;top:11px;right:6vw;z-index:78;width:34px;height:34px;border:1.5px solid var(--ink);border-radius:50%;background:var(--paper);color:var(--ink);font-size:15px;line-height:1;display:grid;place-items:center;transition:transform .2s,background .25s,color .25s}
+.theme-fab:hover{transform:translateY(-2px);background:var(--accent);color:#fff;border-color:var(--accent)}
+.music-fab{right:calc(6vw + 42px)}
 .music-icon{display:inline-block;transition:transform .3s}
 .music-fab.playing .music-icon{animation:musicWave 1s ease-in-out infinite}
 @keyframes musicWave{0%,100%{transform:rotate(-12deg) scale(1)}50%{transform:rotate(12deg) scale(1.12)}}
@@ -831,6 +831,8 @@ body.night .timeline::before{background:var(--line)}
 @media(max-width:640px){
   .spine{width:48px;opacity:.85}
   body::before{height:50px;padding:0 5vw;font-size:14px;color:transparent}
+  .theme-fab{top:8px;right:5vw}
+  .music-fab{right:calc(5vw + 42px)}
   .hero{height:auto;min-height:100vh;padding:90px 6vw 60px;display:flex;flex-direction:column;align-items:flex-start}
   .hero-copy{position:relative;top:auto;left:auto;transform:none;width:100%;padding:22px 20px 24px 24px}
   .hero-copy::before{top:22px;bottom:24px}
