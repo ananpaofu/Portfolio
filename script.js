@@ -11,6 +11,9 @@ const IMAGE_MIGRATION_KEY = 'my_portfolio_image_migration_v1';
 const THUMB_MIGRATION_KEY = 'my_portfolio_thumb_migration_v1';
 const GITHUB_LINK_MIGRATION_KEY = 'my_portfolio_github_link_migration_v1';
 const NEW_PROJECTS_MIGRATION_KEY = 'my_portfolio_new_projects_migration_v1';
+const DETAIL_MIGRATION_KEY = 'my_portfolio_detail_migration_v1';
+const SERIES_MIGRATION_KEY = 'my_portfolio_series_migration_v1';
+const POLISH_MIGRATION_KEY = 'my_portfolio_polish_migration_v1';
 
 const DEFAULT_DATA = {
   profile: {
@@ -116,9 +119,23 @@ const DEFAULT_DATA = {
       category: 'AIGC',
       year: '2026',
       desc: '围绕护肤与洗护产品展开的 AIGC 商业海报练习，以「自然植萃、纯净配方」为概念，用湿润岩石、蕨类与柔和光线构建产品场景，探索 AI 生成图像在商业产品视觉中的质感表现。',
-      image: 'assets/p9.jpg',
+      image: 'assets/chill-0.jpg',
       link: '',
-      tags: ['AIGC', '产品海报', '商业视觉', '护肤']
+      tags: ['AIGC', '产品海报', '商业视觉', '护肤'],
+      detail: {
+        lead: '围绕「自然植萃、纯净配方」展开的 AIGC 护肤洗护系列海报，用自然场景与柔和光线构建产品质感，探索 AI 生成图像在商业产品视觉中的表现力。',
+        sections: [
+          { h: '01 · 概念', p: '以「始于自然，归于自然」为核心，为洗发水、身体乳、护手霜三款产品分别设定植物、水波、岩石等自然场景，统一在清新的绿色调里。' },
+          { h: '02 · 生成', p: '借助 Midjourney 与 Stable Diffusion，反复调整产品摆放、光影与材质细节，让 AI 生成的自然场景与真实产品包装自然融合。最终在 Photoshop 中进行后期加工，统一色调、修正细节并完成排版落地。' },
+          { h: '03 · 成稿', p: '形成三张风格统一、各有侧重的系列海报，从控油蓬松到四季润养，完整呈现一组可落地的护肤洗护商业视觉。' }
+        ],
+        images: [
+          { src: 'assets/chill-0.jpg', cap: '控油蓬松去屑洗发水' },
+          { src: 'assets/chill-1.jpg', cap: '四季清香润养身体乳' },
+          { src: 'assets/chill-2.jpg', cap: '轻柔润养香氛护手霜' }
+        ],
+        note: '产品文案与视觉均为 AIGC 商业海报练习，呈现完整的系列化思路。'
+      }
     },
     {
       id: 'p10',
@@ -126,9 +143,23 @@ const DEFAULT_DATA = {
       category: 'AIGC',
       year: '2025',
       desc: '以「超级芝士 超级发布」为主题的限定蛋糕视觉提案。通过高饱和的粉蓝对比、奇幻城堡与爱心元素，把产品包装成一场梦境般的发布事件，完成从概念到成稿的系列海报。',
-      image: 'assets/p10.jpg',
+      image: 'assets/haoli-0.jpg',
       link: '',
-      tags: ['AIGC', '商业海报', '甜品', '系列作品']
+      tags: ['AIGC', '商业海报', '甜品', '系列作品'],
+      detail: {
+        lead: '以「超级芝士 超级发布」为主题的限定蛋糕视觉提案，把产品包装成一场梦境般的发布事件。',
+        sections: [
+          { h: '01 · 概念', p: '围绕「半熟芝士」的绵密口感与甜品特质，确立高饱和粉蓝对比的视觉基调，用奇幻城堡与爱心元素构建童话般的发布氛围。' },
+          { h: '02 · 生成', p: '借助 Midjourney 与 Stable Diffusion 反复迭代，调整配色、材质与构图，让产品的诱人质感与梦幻场景自然融合。最终在 Photoshop 中进行后期加工，统一色调、修正细节并完成排版落地。' },
+          { h: '03 · 成稿', p: '完成三张系列海报，统一视觉语言又各有侧重，形成一组可直接用于商业发布的甜品视觉。' }
+        ],
+        images: [
+          { src: 'assets/haoli-0.jpg', cap: '系列海报 · 其一' },
+          { src: 'assets/haoli-1.jpg', cap: '系列海报 · 其二' },
+          { src: 'assets/haoli-2.jpg', cap: '系列海报 · 其三' }
+        ],
+        note: '完整呈现从概念设定到三张成稿的系列海报。'
+      }
     },
     {
       id: 'p11',
@@ -159,6 +190,56 @@ const DEFAULT_DATA = {
       image: 'assets/p13.jpg',
       link: '',
       tags: ['H5', '电商', '促销视觉', '长图']
+    },
+    {
+      id: 'p14',
+      title: '齐天流韵 · 孙悟空形象谱系可视化',
+      category: '信息设计',
+      year: '2026',
+      desc: '以孙悟空为线索，梳理其从神话文本到当代跨媒介形象的演变谱系。把文学、戏曲、影视与游戏里的形象数据整理成可读的信息图解，探索传统 IP 在视觉叙事中的当代表达。',
+      image: 'assets/qitian-0.jpg',
+      link: '',
+      tags: ['信息可视化', 'IP 研究', '数据叙事', '传统文化'],
+      detail: {
+        lead: '从「齐天大圣」到「斗战胜佛」，一个形象如何在不同媒介里被不断重写？这个项目把孙悟空的形象谱系做成一张可以被阅读的信息图解。',
+        sections: [
+          { h: '01 · 谱系梳理', p: '从《西游记》原著出发，横向比对戏曲、动画、影视与游戏中的孙悟空形象，归纳出血缘、法宝、称号与性格几条核心线索。' },
+          { h: '02 · 数据可视化', p: '把分散的形象资料整理成结构化数据，再用信息图形语言表达时间脉络、媒介分布与形象差异，让研究过程本身成为视觉的一部分。' },
+          { h: '03 · 版式与呈现', p: '以长图形式组织信息层级，控制阅读节奏：从总览到分表，从数据到图像，层层递进。最终形成一张兼具学术性与观赏性的作品。' }
+        ],
+        images: [
+          { src: 'assets/qitian-0.jpg', cap: '最终成品 · 孙悟空形象谱系信息图解' },
+          { src: 'assets/qitian-1.jpg', cap: '数据与图谱草图' },
+          { src: 'assets/qitian-2.jpg', cap: '形象谱系整理过程' },
+          { src: 'assets/qitian-3.jpg', cap: '版式结构与视觉实验' }
+        ],
+        note: '作品涵盖资料研究、数据整理、可视化设计与版式落地的完整流程。'
+      }
+    },
+    {
+      id: 'p15',
+      title: '醒图拟人 IP · 醒小图',
+      category: 'IP 设计',
+      year: '2026',
+      desc: '为「醒图」创作的拟人化品牌 IP——醒小图。围绕角色的性格设定、视觉规范与多场景延展，完成从概念草图到系列造型的完整设计，让工具品牌拥有可被记住的人格温度。',
+      image: 'assets/xingtu-2.jpg',
+      link: '',
+      tags: ['IP 形象', '角色设计', '品牌视觉', '系列延展'],
+      detail: {
+        lead: '一个修图工具如果变成人，会是什么样子？「醒小图」把醒图的品牌气质转译成一个有性格、有表情、能适应多种场景的角色。',
+        sections: [
+          { h: '01 · 角色设定', p: '从品牌调性出发，确立醒小图的性格、色彩与造型语言，建立角色档案与视觉规范，让形象有一致的气质基础。' },
+          { h: '02 · 形象延展', p: '围绕同一角色，延伸出医生、咖啡师、宇航员、消防员、赛车手等多套职业造型，检验 IP 在不同语境下的适应力与辨识度。' },
+          { h: '03 · 视觉落地', p: '完成表情、动作与场景海报的系列化设计，形成可复用的角色素材库，为后续的运营与传播提供统一的视觉资产。' }
+        ],
+        images: [
+          { src: 'assets/xingtu-0.jpg', cap: 'IP 档案 · 角色设定与品牌规范' },
+          { src: 'assets/xingtu-1.jpg', cap: '角色设计草图与探索' },
+          { src: 'assets/xingtu-2.jpg', cap: '八款职业造型系列' },
+          { src: 'assets/xingtu-3.jpg', cap: '造型延展与场景应用' }
+        ],
+        note: '从概念设定到系列造型，完整呈现一个品牌 IP 的诞生过程。'
+      }
     }
   ]
 };
@@ -275,6 +356,49 @@ function loadData() {
     }
   } catch (e) { console.warn('迁移新增作品失败', e); }
 
+  try {
+    if (!localStorage.getItem(DETAIL_MIGRATION_KEY)) {
+      DEFAULT_DATA.projects.forEach(fresh => {
+        let old = loaded.projects.find(p => p.id === fresh.id);
+        if (!old) { loaded.projects.push(clone(fresh)); return; }
+        if (fresh.detail) old.detail = clone(fresh.detail);
+        if (['p1', 'p2', 'p13'].indexOf(fresh.id) !== -1) old.image = fresh.image;
+        old.title = fresh.title;
+        old.desc = fresh.desc;
+        old.category = fresh.category;
+        old.year = fresh.year;
+        old.tags = clone(fresh.tags);
+      });
+      localStorage.setItem(DETAIL_MIGRATION_KEY, '1');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+    }
+  } catch (e) { console.warn('迁移项目详情失败', e); }
+
+  try {
+    if (!localStorage.getItem(SERIES_MIGRATION_KEY)) {
+      DEFAULT_DATA.projects.forEach(fresh => {
+        const old = loaded.projects.find(p => p.id === fresh.id);
+        if (!old) return;
+        if (fresh.detail) old.detail = clone(fresh.detail);
+        else delete old.detail;
+        if (['p9', 'p10'].indexOf(fresh.id) !== -1) old.image = fresh.image;
+      });
+      localStorage.setItem(SERIES_MIGRATION_KEY, '1');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+    }
+  } catch (e) { console.warn('迁移系列图失败', e); }
+
+  try {
+    if (!localStorage.getItem(POLISH_MIGRATION_KEY)) {
+      DEFAULT_DATA.projects.forEach(fresh => {
+        const old = loaded.projects.find(p => p.id === fresh.id);
+        if (old && fresh.detail) old.detail = clone(fresh.detail);
+      });
+      localStorage.setItem(POLISH_MIGRATION_KEY, '1');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+    }
+  } catch (e) { console.warn('迁移项目文案失败', e); }
+
   return loaded;
 }
 
@@ -333,34 +457,173 @@ function placeholderMedia(project) {
 
 function renderProjects() {
   const grid = document.getElementById('projectGrid');
-  const list = activeFilter === '全部'
-    ? data.projects
-    : data.projects.filter(p => (p.category || '其他') === activeFilter);
+  const list = (activeFilter === '全部'
+    ? data.projects.slice()
+    : data.projects.filter(p => (p.category || '其他') === activeFilter))
+    .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'zh-Hans-CN'));
+  currentGallery = list;
   document.getElementById('emptyState').hidden = list.length > 0;
-  grid.innerHTML = list.map(p => {
+  const coverIds = new Set(['p3', 'p13']);
+  grid.innerHTML = list.map((p, i) => {
     const media = p.image && p.image.trim()
-      ? `<img src="${escapeAttr(p.image.trim())}" alt="${escapeAttr(p.title)}" loading="lazy" decoding="async" data-fallback="${escapeAttr((p.title || '?').trim().charAt(0))}">`
+      ? `<img src="${escapeAttr(p.image.trim())}" alt="${escapeAttr(p.title)}" loading="lazy" decoding="async" draggable="false" data-fallback="${escapeAttr((p.title || '?').trim().charAt(0))}">`
       : `<div class="work-placeholder">${escapeHtml((p.title || '?').trim().charAt(0))}</div>`;
     const tags = (p.tags || []).filter(Boolean).map(t => `<span class="work-tag">${escapeHtml(t)}</span>`).join('');
+    let action;
+    if (p.link && p.link.trim()) {
+      action = `<a class="work-open" href="${escapeAttr(p.link.trim())}" target="_blank" rel="noopener noreferrer" data-stoplb>查看项目 ↗</a>`;
+    } else {
+      const label = p.detail ? '查看项目详情 ↗' : '查看高清图 ↗';
+      action = `<button class="work-open" type="button" data-action="${p.detail ? 'detail' : 'image'}" data-lb="${i}">${label}</button>`;
+    }
     const inner = `
-      <div class="work-media">${media}</div>
+      <div class="work-media${coverIds.has(p.id) ? ' cover-only' : ''}">${media}</div>
       <div class="work-body">
-        <span class="work-cat">${escapeHtml(p.category || '其他')} · ${escapeHtml(p.year || '')}</span>
         <h3 class="work-title">${escapeHtml(p.title || '未命名作品')}</h3>
+        <span class="work-cat">${escapeHtml(p.category || '其他')} · ${escapeHtml(p.year || '')}</span>
         <p class="work-desc">${escapeHtml(p.desc || '')}</p>
         ${tags ? `<div class="work-tags">${tags}</div>` : ''}
-        ${p.link && p.link.trim() ? '<span class="work-open">查看项目 ↗</span>' : ''}
+        ${action}
       </div>`;
-    return p.link && p.link.trim()
-      ? `<a class="work-item" href="${escapeAttr(p.link.trim())}" target="_blank" rel="noopener noreferrer">${inner}</a>`
-      : `<article class="work-item">${inner}</article>`;
+    return `<article class="work-item" role="button" tabindex="0" aria-label="查看 ${escapeAttr(p.title || '作品')}">${inner}</article>`;
   }).join('');
   grid.querySelectorAll('.work-media img').forEach(img => {
     img.addEventListener('error', () => {
       img.parentElement.innerHTML = `<div class="work-placeholder">${escapeHtml(img.dataset.fallback || '?')}</div>`;
     });
   });
+  grid.querySelectorAll('.work-item').forEach(card => {
+    const project = list.find(p => p.title === card.querySelector('.work-title').textContent);
+    function activate(e) {
+      if (e && e.target.closest('[data-stoplb]')) return;
+      if (!project) return;
+      if (project.detail) openDetail(project);
+      else openLightbox(list.indexOf(project));
+    }
+    card.addEventListener('click', activate);
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); }
+    });
+  });
   observeReveals();
+}
+
+/* ---------- 作品高清图灯箱 ---------- */
+let currentGallery = [];
+let lbIndex = 0;
+const lb = document.getElementById('lightbox');
+
+function renderLightbox() {
+  const p = currentGallery[lbIndex];
+  if (!p || !lb) return;
+  const img = document.getElementById('lbImg');
+  const src = p.image && p.image.trim() ? p.image.trim() : '';
+  img.onerror = () => { img.style.visibility = 'hidden'; };
+  if (src) { img.src = src; img.alt = p.title || ''; img.style.visibility = 'visible'; }
+  else { img.removeAttribute('src'); img.alt = ''; img.style.visibility = 'hidden'; }
+  img.onload = () => {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    document.getElementById('lbCount').textContent = `${lbIndex + 1} / ${currentGallery.length} · 原图 ${w}×${h}`;
+  };
+  document.getElementById('lbCat').textContent = `${p.category || '其他'} · ${p.year || ''}`;
+  document.getElementById('lbTitle').textContent = p.title || '未命名作品';
+  document.getElementById('lbCount').textContent = `${lbIndex + 1} / ${currentGallery.length}`;
+  if (src && img.complete && img.naturalWidth) {
+    document.getElementById('lbCount').textContent = `${lbIndex + 1} / ${currentGallery.length} · 原图 ${img.naturalWidth}×${img.naturalHeight}`;
+  }
+  const many = currentGallery.length > 1;
+  document.getElementById('lbPrev').hidden = !many;
+  document.getElementById('lbNext').hidden = !many;
+}
+function openLightbox(i) {
+  if (!lb) return;
+  lbIndex = i;
+  renderLightbox();
+  lb.hidden = false;
+  document.body.classList.add('pop-open');
+}
+function closeLightbox() {
+  if (!lb || lb.hidden) return;
+  lb.hidden = true;
+  const card = document.getElementById('popCard');
+  const detail = document.getElementById('detailCard');
+  if ((!card || card.hidden) && (!detail || detail.hidden)) document.body.classList.remove('pop-open');
+}
+function stepLightbox(d) {
+  if (!currentGallery.length) return;
+  lbIndex = (lbIndex + d + currentGallery.length) % currentGallery.length;
+  renderLightbox();
+}
+if (lb) {
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); stepLightbox(-1); });
+  document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); stepLightbox(1); });
+  lb.addEventListener('click', e => { if (e.target === lb || e.target.classList.contains('lb-figure')) closeLightbox(); });
+  document.addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowLeft') stepLightbox(-1);
+    else if (e.key === 'ArrowRight') stepLightbox(1);
+  });
+}
+
+/* ---------- 项目详情弹窗 ---------- */
+const detailCard = document.getElementById('detailCard');
+const detailOverlay = document.getElementById('detailOverlay');
+const detailScroll = document.getElementById('detailScroll');
+
+function openDetail(p) {
+  if (!detailCard || !p || !p.detail) return;
+  const d = p.detail;
+  const sections = (d.sections || []).map(s => `
+    <div class="detail-sec">
+      <h4>${escapeHtml(s.h || '')}</h4>
+      <p>${escapeHtml(s.p || '')}</p>
+    </div>`).join('');
+  const images = (d.images || []).map((im, i) => `
+    <figure class="detail-figure">
+      <img src="${escapeAttr(im.src)}" alt="${escapeAttr(im.cap || p.title)}" loading="lazy" decoding="async" data-detail-img="${i}">
+      ${im.cap ? `<figcaption>${escapeHtml(im.cap)}</figcaption>` : ''}
+    </figure>`).join('');
+  detailScroll.innerHTML = `
+    <header class="detail-head">
+      <span class="detail-kicker">${escapeHtml(p.category || '项目')} · ${escapeHtml(p.year || '')}</span>
+      <h2>${escapeHtml(p.title || '')}</h2>
+      <p class="detail-lead">${escapeHtml(d.lead || p.desc || '')}</p>
+    </header>
+    <div class="detail-sections">${sections}</div>
+    <div class="detail-gallery">${images}</div>
+    ${d.note ? `<div class="detail-note">${escapeHtml(d.note)}</div>` : ''}`;
+  detailScroll.querySelectorAll('[data-detail-img]').forEach(img => {
+    img.addEventListener('click', () => {
+      const imgs = (d.images || []).map(x => x.src);
+      const gallery = imgs.map((src, i) => ({ image: src, title: (d.images[i].cap || p.title), category: '项目详情' }));
+      currentGallery = gallery;
+      openLightbox(Number(img.dataset.detailImg));
+    });
+  });
+  detailScroll.scrollTop = 0;
+  detailOverlay.hidden = false;
+  detailCard.hidden = false;
+  document.body.classList.add('pop-open');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    detailOverlay.classList.add('show');
+    detailCard.classList.add('open');
+  }));
+}
+function closeDetail() {
+  if (!detailCard || detailCard.hidden) return;
+  detailCard.classList.remove('open');
+  detailOverlay.classList.remove('show');
+  setTimeout(() => {
+    detailCard.hidden = true;
+    detailOverlay.hidden = true;
+    if (lb.hidden && document.getElementById('popCard').hidden) document.body.classList.remove('pop-open');
+  }, 420);
+}
+if (detailCard) {
+  document.getElementById('detailClose').addEventListener('click', closeDetail);
+  detailOverlay.addEventListener('click', closeDetail);
 }
 
 function renderSkills() {
@@ -842,10 +1105,49 @@ document.getElementById('resetData').addEventListener('click', () => {
       }
     });
     steps.forEach(s => s.classList.toggle('active', s.dataset.target === current));
+    document.querySelectorAll('.mnd-link').forEach(l => l.classList.toggle('active', l.dataset.target === current));
   }
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
   update();
+})();
+
+/* ---------- 竖屏导航抽屉 ---------- */
+(function initMobileNav() {
+  const btn = document.getElementById('mobileNavBtn');
+  const drawer = document.getElementById('mobileNavDrawer');
+  const mask = document.getElementById('mobileNavMask');
+  const close = document.getElementById('mobileNavClose');
+  if (!btn || !drawer || !mask) return;
+
+  function open() {
+    requestAnimationFrame(() => mask.classList.add('show'));
+    drawer.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('mobile-nav-open');
+  }
+  function shut() {
+    mask.classList.remove('show');
+    drawer.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('mobile-nav-open');
+  }
+  btn.addEventListener('click', () => {
+    if (drawer.classList.contains('open')) shut(); else open();
+  });
+  if (close) close.addEventListener('click', shut);
+  mask.addEventListener('click', shut);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) shut();
+  });
+  drawer.querySelectorAll('.mnd-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(link.dataset.target);
+      shut();
+      if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 260);
+    });
+  });
 })();
 
 /* ---------- 滚动进度 / 视差 / 入场 ---------- */
@@ -995,7 +1297,9 @@ document.getElementById('navEdit').addEventListener('click', openPanel);
 document.getElementById('editClose').addEventListener('click', closePanel);
 overlay.addEventListener('click', closePanel);
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeView(); closePanel(); closeModal(); }
+  if (e.key !== 'Escape') return;
+  if (lb && !lb.hidden) return;
+  closeDetail(); closeView(); closePanel(); closeModal();
 });
 document.getElementById('modalClose').addEventListener('click', closeModal);
 document.getElementById('modalCancel').addEventListener('click', closeModal);
@@ -1049,6 +1353,7 @@ function observeReveals() {
 function renderFeatured() {
   const track = document.getElementById('featuredTrack');
   if (!track) return;
+  // 全部作品都放进轨道才能左右滑动；卡片够大，一屏只看得到几张，更留白更高级
   const picks = data.projects;
   track.innerHTML = picks.map(p => {
     const media = p.image && p.image.trim()
@@ -1087,15 +1392,47 @@ function renderFeatured() {
 
   track.addEventListener('mouseenter', () => { paused = true; });
   track.addEventListener('mouseleave', () => { paused = false; pauseUntil = 0; });
-  track.addEventListener('wheel', () => { pauseUntil = performance.now() + 2200; }, { passive: true });
+  // 竖向滚轮转为横向滚动，鼠标按住拖动也能滑
+  track.addEventListener('wheel', e => {
+    pauseUntil = performance.now() + 2600;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      track.scrollLeft += e.deltaY;
+    }
+  }, { passive: false });
   track.addEventListener('touchstart', () => { pauseUntil = performance.now() + 2600; }, { passive: true });
-  track.addEventListener('pointerdown', () => { pauseUntil = performance.now() + 2200; }, { passive: true });
+
+  let dragging = false, dragStartX = 0, dragStartLeft = 0, dragMoved = false;
+  track.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') return;
+    paused = true;
+    dragging = true; dragMoved = false;
+    dragStartX = e.clientX; dragStartLeft = track.scrollLeft;
+    pauseUntil = performance.now() + 2600;
+  });
+  window.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStartX;
+    if (Math.abs(dx) > 4) dragMoved = true;
+    track.scrollLeft = dragStartLeft - dx;
+  });
+  window.addEventListener('pointerup', () => {
+    if (!dragging) return;
+    dragging = false;
+    pauseUntil = performance.now() + 1800;
+  });
+  track.addEventListener('click', e => { if (dragMoved) { e.stopPropagation(); e.preventDefault(); } }, true);
   document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+
+  let visible = true;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => { visible = entries[0].isIntersecting; }, { threshold: 0 }).observe(track);
+  }
 
   function tick(now) {
     const dt = last ? Math.min(3, (now - last) / 16.67) : 1;
     last = now;
-    if (!paused && now >= pauseUntil && !document.hidden) {
+    if (!paused && visible && now >= pauseUntil && !document.hidden) {
       const max = track.scrollWidth - track.clientWidth;
       if (max > 4) {
         let next = track.scrollLeft + speed * dt;
@@ -1106,6 +1443,65 @@ function renderFeatured() {
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+})();
+
+/* ---------- 作品时间轴：滚轮转横向 + 拖拽浏览 ---------- */
+(function initTimelineScroll() {
+  const track = document.getElementById('projectGrid');
+  if (!track) return;
+
+  track.addEventListener('dragstart', e => { e.preventDefault(); });
+  track.addEventListener('wheel', e => {
+    const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    const max = track.scrollWidth - track.clientWidth;
+    if (max <= 1) return;
+    const atStart = track.scrollLeft <= 0 && delta < 0;
+    const atEnd = track.scrollLeft >= max - 1 && delta > 0;
+    if (atStart || atEnd) return;
+    e.preventDefault();
+    track.scrollLeft += delta;
+  }, { passive: false });
+
+  let dragging = false, startX = 0, startLeft = 0, moved = false;
+  track.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' || e.target.closest('.work-open')) return;
+    dragging = true; moved = false;
+    startX = e.clientX; startLeft = track.scrollLeft;
+  });
+  window.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 4) moved = true;
+    track.scrollLeft = startLeft - dx;
+  });
+  window.addEventListener('pointerup', () => { dragging = false; });
+  track.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+  const prev = document.getElementById('tlPrev');
+  const next = document.getElementById('tlNext');
+  function step(dir) {
+    const card = track.querySelector('.work-item');
+    const amount = card ? card.getBoundingClientRect().width + 24 : 300;
+    track.scrollBy({ left: dir * amount, behavior: 'smooth' });
+  }
+  if (prev) prev.addEventListener('click', () => step(-1));
+  if (next) next.addEventListener('click', () => step(1));
+
+  document.addEventListener('keydown', e => {
+    const pop = document.getElementById('popCard');
+    const lightbox = document.getElementById('lightbox');
+    const detail = document.getElementById('detailCard');
+    const tag = (e.target && e.target.tagName) || '';
+    if (/INPUT|TEXTAREA|SELECT/.test(tag) || e.target.isContentEditable) return;
+    if (!pop || pop.hidden || (lightbox && !lightbox.hidden) || (detail && !detail.hidden)) return;
+    if (track.offsetParent === null) return;
+    let dir = 0;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') dir = -1;
+    else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') dir = 1;
+    if (!dir) return;
+    e.preventDefault();
+    step(dir);
+  });
 })();
 
 /* ---------- 喂猫计数 ---------- */
@@ -1228,6 +1624,63 @@ function renderFeatured() {
   });
 })();
 
+/* ---------- 留言板：通过 FormSubmit 发送到你邮箱，本地仅作即时回显 ---------- */
+const GUESTBOOK_EMAIL = '3303076659@qq.com'; // ← 改成你想接收留言的邮箱
+(function initGuestbook() {
+  const form = document.getElementById('gbForm');
+  const list = document.getElementById('gbList');
+  const nameEl = document.getElementById('gbName');
+  const textEl = document.getElementById('gbText');
+  const counter = document.getElementById('gbCount');
+  const submitBtn = form ? form.querySelector('.gb-submit') : null;
+  if (!form || !list) return;
+  const KEY = 'my_portfolio_guestbook_v1';
+  let msgs = [];
+  try { msgs = JSON.parse(localStorage.getItem(KEY)) || []; } catch (_) { msgs = []; }
+  if (!Array.isArray(msgs)) msgs = [];
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(msgs)); } catch (_) {} }
+  function render() {
+    if (!msgs.length) { list.innerHTML = '<p class="gb-empty">还没有留言,来当第一个吧 🐾</p>'; return; }
+    list.innerHTML = msgs.map((m, i) => `
+      <div class="gb-item">
+        <div class="gb-who">${escapeHtml(m.name || '匿名访客')} 🐾</div>
+        <p class="gb-text">${escapeHtml(m.text || '')}</p>
+        <time class="gb-time">${escapeHtml(m.time || '')}</time>
+        <button class="gb-del" data-i="${i}" title="删除这条" aria-label="删除这条">✕</button>
+      </div>`).join('');
+    list.querySelectorAll('.gb-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm('删除这条留言吗?')) { msgs.splice(Number(btn.dataset.i), 1); save(); render(); }
+      });
+    });
+  }
+  function updateCount() { if (counter) counter.textContent = `${(textEl.value || '').length} / 300`; }
+  textEl.addEventListener('input', updateCount);
+  updateCount();
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = (textEl.value || '').trim();
+    if (!text) { toast('先写点什么吧'); return; }
+    const name = (nameEl.value || '').trim() || '匿名访客';
+    const now = new Date();
+    const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const subject = encodeURIComponent(`🐾 作品集新留言 · ${name}`);
+    const body = encodeURIComponent(`留言人：${name}\n时间：${time}\n\n${text}\n\n—— 来自 CAT TREE PORTFOLIO 留言板`);
+    const mailto = `mailto:${GUESTBOOK_EMAIL}?subject=${subject}&body=${body}`;
+
+    msgs.unshift({ name, text, time });
+    save(); render();
+    textEl.value = ''; updateCount();
+    toast('已打开邮件应用，点发送就能把留言寄给我 🐾');
+
+    window.location.href = mailto;
+  });
+  render();
+})();
+
 /* ---------- 启动 ---------- */
 render();
 renderFeatured();
@@ -1309,34 +1762,94 @@ renderFeatured();
   new MutationObserver(sync).observe(card, { attributes: true, attributeFilter: ['class', 'hidden'] });
 })();
 
-/* ---------- 作品视图切换：卡片 / 详细，不影响原有筛选与渲染 ---------- */
-(function initWorkViewModes() {
-  const grid = document.getElementById('projectGrid');
-  const tools = document.querySelector('.view-tools');
-  if (!grid || !tools) return;
-  const KEY = 'my_portfolio_work_view_v1';
-  let mode = 'card';
-  try { mode = localStorage.getItem(KEY) === 'detail' ? 'detail' : 'card'; } catch (_) {}
+/* ---------- 背景小方块拼成大猫头，随鼠标凸起、移开后自然陷回 ---------- */
+(function initPixelCatHead() {
+  if (window.matchMedia && window.matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches) return;
+  const layer = document.getElementById('pixelCat');
+  if (!layer) return;
+  layer.innerHTML = '';
 
-  function apply(next) {
-    mode = next === 'detail' ? 'detail' : 'card';
-    grid.classList.toggle('detail-mode', mode === 'detail');
-    tools.querySelectorAll('.view-mode').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === mode);
+  const GRID = 20;
+  const SIZE = GRID - 3;
+  const R = 165;
+  const cells = new Map();
+  let mx = -9999, my = -9999, pending = false, lastRun = 0;
+
+  function inTri(x, y, x1, y1, x2, y2, x3, y3) {
+    const s = (px, py, ax, ay, bx, by) => (px - bx) * (ay - by) - (ax - bx) * (py - by);
+    const d1 = s(x, y, x1, y1, x2, y2), d2 = s(x, y, x2, y2, x3, y3), d3 = s(x, y, x3, y3, x1, y1);
+    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+  }
+  function inHead(x, y) {
+    if ((x * x) / (122 * 122) + (y * y) / (103 * 103) <= 1) return true;
+    if (inTri(x, y, -118, -61, -88, -141, -42, -84)) return true;
+    if (inTri(x, y, 118, -61, 88, -141, 42, -84)) return true;
+    return false;
+  }
+  function update() {
+    pending = false;
+    const want = new Set();
+    const fresh = [];
+    const x0 = Math.floor((mx - R) / GRID), x1 = Math.ceil((mx + R) / GRID);
+    const y0 = Math.floor((my - R) / GRID), y1 = Math.ceil((my + R) / GRID);
+
+    for (let gx = x0; gx <= x1; gx++) {
+      for (let gy = y0; gy <= y1; gy++) {
+        const x = gx * GRID + GRID / 2 - mx;
+        const y = gy * GRID + GRID / 2 - my;
+        if (!inHead(x, y)) continue;
+
+        const key = gx + ',' + gy;
+        want.add(key);
+        if (!cells.has(key)) {
+          const el = document.createElement('div');
+          el.className = 'pixel-pop lifted';
+          el.style.left = (gx * GRID) + 'px';
+          el.style.top = (gy * GRID) + 'px';
+          el.style.width = SIZE + 'px';
+          el.style.height = SIZE + 'px';
+          el.style.setProperty('--op', (0.22 + Math.random() * 0.18).toFixed(2));
+          fresh.push(el);
+          cells.set(key, { el, timer: 0 });
+        }
+      }
+    }
+
+    if (fresh.length) {
+      const frag = document.createDocumentFragment();
+      fresh.forEach(el => frag.appendChild(el));
+      layer.appendChild(frag);
+    }
+    cells.forEach((item, key) => {
+      if (want.has(key)) {
+        clearTimeout(item.timer);
+        item.timer = 0;
+      } else if (!item.timer) {
+        item.el.classList.remove('lifted');
+        item.timer = setTimeout(() => { item.el.remove(); cells.delete(key); }, 420);
+      }
     });
-    try { localStorage.setItem(KEY, mode); } catch (_) {}
   }
 
-  tools.querySelectorAll('.view-mode').forEach(b => {
-    b.addEventListener('click', () => apply(b.dataset.mode));
-  });
-  apply(mode);
+  document.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch') return;
+    const now = performance.now();
+    if (now - lastRun < 50) return;
+    lastRun = now;
+    mx = e.clientX; my = e.clientY;
+    if (!pending) { pending = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  function leave() {
+    mx = -9999; my = -9999;
+    if (!pending) { pending = true; requestAnimationFrame(update); }
+  }
+  document.addEventListener('pointerleave', leave);
+  window.addEventListener('blur', leave);
 })();
 
-/* ---------- 点击空白处冒出猫猫头：不干扰任何原有交互 ---------- */
 (function initClickCats() {
-  const SKIP = 'button,a,input,textarea,select,label,.voxel-stage,.voxel-controls,.cat-atlas,.paw-nav,.hero-strip,.toy-item,.pop-card,.pop-overlay,.edit-panel,.modal,.overlay,.toast,.filter-btn,.view-mode,.work-item,.skill-item,.cv-row,.contact-mail,.theme-fab,.edit-fab';
-  const faces = ['🐱', '🐈', '😺', '😸', '🙀', '😽'];
+  const SKIP = 'button,a,input,textarea,select,label,.voxel-stage,.voxel-controls,.cat-atlas,.paw-nav,.hero-strip,.toy-item,.pop-card,.pop-overlay,.edit-panel,.modal,.overlay,.toast,.lightbox,.filter-btn,.view-mode,.work-item,.skill-item,.cv-row,.contact-mail,.theme-fab,.edit-fab';
+  const faces = ['🐱', '🐈', '😺', '😸', '😻', '😽'];
   document.addEventListener('click', e => {
     if (e.target.closest(SKIP)) return;
     const el = document.createElement('span');
@@ -1344,9 +1857,93 @@ renderFeatured();
     el.textContent = faces[Math.floor(Math.random() * faces.length)];
     el.style.left = e.clientX + 'px';
     el.style.top = e.clientY + 'px';
-    el.style.setProperty('--r', (Math.random() * 40 - 20).toFixed(0) + 'deg');
-    el.style.setProperty('--dx', (Math.random() * 40 - 20).toFixed(0) + 'px');
+    el.style.setProperty('--r', (Math.random() * 36 - 18).toFixed(0) + 'deg');
+    el.style.setProperty('--dx', (Math.random() * 46 - 23).toFixed(0) + 'px');
+    el.style.setProperty('--sz', (46 + Math.random() * 20).toFixed(0) + 'px');
+    el.style.setProperty('--dur', (1500 + Math.random() * 500).toFixed(0) + 'ms');
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 1150);
+    setTimeout(() => el.remove(), 2100);
   });
+})();
+
+/* ---------- 轻音乐：Web Audio 实时合成，零音频文件 ---------- */
+(function initMusic() {
+  const btn = document.getElementById('musicToggle');
+  if (!btn) return;
+  let ctx = null, master = null, timer = null, playing = false, step = 0;
+  // C 大调五声音阶（含高八度），单位 Hz，柔和音域
+  const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+  const bass = [130.81, 164.81, 196.00, 174.61]; // C G F 的低音
+  let idx = 2;
+
+  function note(freq, when, dur, vol, type) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1600;
+    osc.type = type || 'triangle';
+    osc.frequency.setValueAtTime(freq, when);
+    gain.gain.setValueAtTime(0, when);
+    gain.gain.linearRampToValueAtTime(vol, when + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+    osc.start(when);
+    osc.stop(when + dur + 0.05);
+  }
+
+  function schedule() {
+    if (!playing || !ctx) return;
+    const now = ctx.currentTime;
+    const beat = 0.62;
+    // 主旋律：在五声音阶上做小步随机漫步
+    idx += Math.floor(Math.random() * 3) - 1;
+    if (idx < 0) idx = 1;
+    if (idx >= scale.length) idx = scale.length - 2;
+    const len = beat * (Math.random() < 0.3 ? 2.6 : 1.7);
+    note(scale[idx], now + 0.05, len, 0.16, 'triangle');
+    if (Math.random() < 0.35) note(scale[idx] * 2, now + 0.05, len * 0.7, 0.04, 'sine');
+    // 每 4 拍铺一个柔和低音，营造和声底
+    if (step % 4 === 0) note(bass[Math.floor(step / 4) % bass.length], now + 0.05, beat * 3.6, 0.1, 'sine');
+    step++;
+    timer = setTimeout(schedule, beat * 950);
+  }
+
+  function start() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { toast('当前浏览器不支持音乐播放'); return; }
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    playing = true;
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 1.2);
+    btn.classList.add('playing');
+    btn.setAttribute('aria-pressed', 'true');
+    btn.title = '暂停轻音乐';
+    btn.querySelector('.music-icon').textContent = '♫';
+    schedule();
+  }
+  function stop() {
+    playing = false;
+    clearTimeout(timer);
+    if (ctx && master) {
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+    }
+    btn.classList.remove('playing');
+    btn.setAttribute('aria-pressed', 'false');
+    btn.title = '播放轻音乐';
+  }
+
+  btn.addEventListener('click', () => { if (playing) stop(); else start(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && playing) stop(); });
 })();

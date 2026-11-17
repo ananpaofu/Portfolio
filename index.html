@@ -11,10 +11,12 @@
 </head>
 <body>
 
+<button class="theme-fab music-fab" id="musicToggle" title="播放轻音乐" aria-label="播放轻音乐" aria-pressed="false"><span class="music-icon">♫</span></button>
 <button class="theme-fab" id="themeToggle" title="切换到夜晚" aria-label="切换昼夜主题"><span class="theme-icon">☾</span></button>
 <button class="edit-fab" id="navEdit" title="编辑作品集">编辑 ✎</button>
 <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 <div class="stars" id="stars" aria-hidden="true"></div>
+<div class="pixel-cat" id="pixelCat" aria-hidden="true"></div>
 
 <div class="world">
 
@@ -31,10 +33,24 @@
     <i class="spine-light" style="top:81%"></i>
   </div>
 
+  <!-- 竖屏导航：点击顶部 CAT TREE 从左侧滑出 -->
+  <button class="mobile-nav-btn" id="mobileNavBtn" aria-label="打开导航" aria-expanded="false">🐾 CAT TREE <span class="mnb-caret">›</span></button>
+  <div class="mobile-nav-mask" id="mobileNavMask"></div>
+  <nav class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="移动端导航">
+    <div class="mnd-head"><span>🐾 CAT TREE</span><button class="mnd-close" id="mobileNavClose" aria-label="关闭导航">&times;</button></div>
+    <p class="mnd-tip">顺着猫爬架，跳到想去的楼层</p>
+    <a class="mnd-link" href="#home" data-target="home"><span class="mnd-num">01</span><span class="mnd-ico">🐾</span>首页</a>
+    <a class="mnd-link" href="#featured" data-target="featured"><span class="mnd-num">02</span><span class="mnd-ico">🐾</span>作品</a>
+    <a class="mnd-link" href="#level-skills" data-target="level-skills"><span class="mnd-num">03</span><span class="mnd-ico">🐾</span>技能</a>
+    <a class="mnd-link" href="#level-about" data-target="level-about"><span class="mnd-num">04</span><span class="mnd-ico">🐾</span>关于我</a>
+    <a class="mnd-link" href="#level-cv" data-target="level-cv"><span class="mnd-num">05</span><span class="mnd-ico">🐾</span>履历</a>
+    <a class="mnd-link" href="#level-contact" data-target="level-contact"><span class="mnd-num">06</span><span class="mnd-ico">🐾</span>联系</a>
+  </nav>
+
   <!-- 爪印导航路标 -->
   <nav class="paw-nav" id="pawNav" aria-label="页面导航">
     <a class="paw-step" href="#home" data-target="home"><span class="paw-ico">🐾</span><span class="paw-label">首页</span></a>
-    <a class="paw-step" href="#level-works" data-target="level-works"><span class="paw-ico">🐾</span><span class="paw-label">作品</span></a>
+    <a class="paw-step" href="#featured" data-target="featured"><span class="paw-ico">🐾</span><span class="paw-label">作品</span></a>
     <a class="paw-step" href="#level-skills" data-target="level-skills"><span class="paw-ico">🐾</span><span class="paw-label">技能</span></a>
     <a class="paw-step" href="#level-about" data-target="level-about"><span class="paw-ico">🐾</span><span class="paw-label">关于我</span></a>
     <a class="paw-step" href="#level-cv" data-target="level-cv"><span class="paw-ico">🐾</span><span class="paw-label">履历</span></a>
@@ -109,7 +125,7 @@
   <section class="featured-strip" id="featured" aria-label="精选作品">
     <div class="featured-head">
       <span class="mini-label">FEATURED WORKS · 精选作品</span>
-      <span class="featured-hint">自动播放 · 悬停暂停 / 可横向滑动 →</span>
+      <span class="featured-hint">滚轮 / 拖动可左右滑动 · 悬停暂停 →</span>
     </div>
     <div class="featured-track" id="featuredTrack"></div>
   </section>
@@ -168,6 +184,27 @@
 
   </section>
 
+  <!-- 留言板 -->
+  <section class="guestbook" id="guestbook" aria-label="留言板">
+    <div class="gb-inner">
+      <div class="gb-head">
+        <span class="mini-label">GUESTBOOK · 留言板</span>
+        <h2>给泡芙留个言 <span>🐾</span></h2>
+        <p>看了作品集，想说点什么？写下后会打开你的邮件应用，点「发送」就能寄到我的邮箱，我每条都会看 🐾<br>没弹出邮件应用？也可以直接发邮件到 <a class="gb-mail" href="mailto:3303076659@qq.com">3303076659@qq.com</a></p>
+      </div>
+      <form class="gb-form" id="gbForm">
+        <div class="gb-row">
+          <input type="text" id="gbName" placeholder="你的名字(选填)" maxlength="24">
+          <button type="submit" class="gb-submit">贴上留言 🐾</button>
+        </div>
+        <textarea id="gbText" placeholder="写下你的想法……" maxlength="300" rows="3" required></textarea>
+        <div class="gb-meta"><span id="gbCount">0 / 300</span></div>
+      </form>
+
+      <div class="gb-list" id="gbList"></div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <span>© 2026 <span data-profile-field="name">泡芙</span> · CAT TREE PORTFOLIO</span>
     <span data-profile-field="footerNote">Made with care &amp; a little bit of catnip.</span>
@@ -196,25 +233,60 @@
           </div>
         </div>
       </div>
+
+      <div class="whatido">
+        <div class="wi-head">
+          <span class="mini-label">WHAT I DO · 我能做什么</span>
+          <h3>我能做什么</h3>
+          <p>从视觉到交互，再到 AIGC —— 把想法做成能被看见、能被人记住的东西。</p>
+        </div>
+        <div class="wi-grid">
+          <div class="wi-card">
+            <span class="wi-icon c1">🎨</span>
+            <h4>视觉设计</h4>
+            <p class="wi-lead">海报、展板、详情页与 IP 形象</p>
+            <ul><li>Photoshop / Illustrator</li><li>版式与品牌视觉</li><li>商品详情页 · 展板</li></ul>
+          </div>
+          <div class="wi-card">
+            <span class="wi-icon c2">🗺️</span>
+            <h4>交互可视化</h4>
+            <p class="wi-lead">让数据和文化信息变得能"走过"</p>
+            <ul><li>Mapbox 交互地图</li><li>非遗点位数据可视化</li><li>空间信息应用</li></ul>
+          </div>
+          <div class="wi-card">
+            <span class="wi-icon c3">✨</span>
+            <h4>AIGC 创作</h4>
+            <p class="wi-lead">从概念到成稿的完整 AI 创作流程</p>
+            <ul><li>Midjourney · SD-WebUI</li><li>ComfyUI · LoRA 训练</li><li>海报 / IP / 商品视觉</li></ul>
+          </div>
+          <div class="wi-card">
+            <span class="wi-icon c4">🐾</span>
+            <h4>三维与展览</h4>
+            <p class="wi-lead">把设计思路搭成看得见的空间</p>
+            <ul><li>SketchUp / AutoCAD 建模</li><li>展陈可视化建模</li><li>展览策划与平面设计</li></ul>
+          </div>
+        </div>
+        <p class="wi-note"><span class="wi-badge">🐾</span> 湖北美术学院艺术与科技专业本科在读，深耕视觉设计、交互可视化与 AIGC 创作；熟悉 AIGC 全流程、LoRA 模型训练与开源编程基础，具备良好的数字视觉创作能力。</p>
+      </div>
     </div>
 
     <div class="view" id="view-works" hidden>
       <p class="view-desc" data-profile-field="worksIntro">课程作业、项目实践与探索性创作。</p>
       <div class="process-strip" aria-label="创作过程">
-        <div class="process-step"><span>01</span><b>观察 · 调研</b><small>找到真正的问题</small></div>
+        <div class="process-step"><span>01</span><b>观察 · 调研</b></div>
         <i>→</i>
-        <div class="process-step"><span>02</span><b>草稿 · 实验</b><small>让想法先跑起来</small></div>
+        <div class="process-step"><span>02</span><b>草稿 · 实验</b></div>
         <i>→</i>
-        <div class="process-step"><span>03</span><b>系统 · 排版</b><small>建立秩序与层级</small></div>
+        <div class="process-step"><span>03</span><b>系统 · 排版</b></div>
         <i>→</i>
-        <div class="process-step"><span>04</span><b>落地 · 呈现</b><small>把故事讲完整</small></div>
+        <div class="process-step"><span>04</span><b>落地 · 呈现</b></div>
       </div>
       <div class="works-toolbar">
         <div class="filters" id="filters"></div>
         <div class="view-tools">
-          <span class="tools-label">VIEW</span>
-          <button class="view-mode active" data-mode="card" aria-label="卡片视图" title="卡片视图">▦</button>
-          <button class="view-mode" data-mode="detail" aria-label="详细视图" title="详细视图">☰</button>
+          <span class="tools-label">按名称排序</span>
+          <button class="tl-arrow" id="tlPrev" aria-label="向左浏览" title="向左">‹</button>
+          <button class="tl-arrow" id="tlNext" aria-label="向右浏览" title="向右">›</button>
         </div>
       </div>
       <div class="grid" id="projectGrid"></div>
@@ -325,6 +397,24 @@
       <button class="save-btn" id="creatorSubmit">验证并进入</button>
     </div>
   </div>
+</div>
+
+<!-- 项目详情弹窗 -->
+<div class="detail-overlay" id="detailOverlay" hidden></div>
+<div class="detail-card" id="detailCard" hidden role="dialog" aria-modal="true" aria-label="项目详情">
+  <button class="detail-close" id="detailClose" aria-label="关闭详情">&times;</button>
+  <div class="detail-scroll" id="detailScroll"></div>
+</div>
+
+<!-- 高清图灯箱 -->
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="作品高清图">
+  <button class="lb-close" id="lbClose" aria-label="关闭大图">&times;</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="上一张">‹</button>
+  <figure class="lb-figure">
+    <img class="lb-img" id="lbImg" alt="">
+    <figcaption class="lb-cap"><span id="lbCat"></span><b id="lbTitle"></b><small id="lbCount"></small></figcaption>
+  </figure>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="下一张">›</button>
 </div>
 
 <div class="toast" id="toast"></div>
