@@ -381,6 +381,10 @@ const panel = document.getElementById('editPanel');
 const overlay = document.getElementById('overlay');
 
 function openPanel() {
+  if (typeof window.isCreator === 'function' && !window.isCreator()) {
+    toast('仅创作者可编辑内容');
+    return;
+  }
   panel.classList.add('open');
   panel.setAttribute('aria-hidden', 'false');
   overlay.hidden = false;
@@ -917,6 +921,75 @@ document.querySelectorAll('[data-view]').forEach(el => {
 document.getElementById('popClose').addEventListener('click', closeView);
 popOverlay.addEventListener('click', closeView);
 
+/* ---------- 创作者 / 访客区分 ----------
+   只想让你自己能编辑：把下面的密码改成只有你知道的一串，
+   访客点「创作者入口」输不对密码就看不到编辑功能。
+   注意：这是纯静态网站，没有服务器，密码只是前端拦截，
+   真正防不住懂代码的人；但它能挡住绝大多数普通访客。 */
+const CREATOR_PASSWORD = 'paofu2026';
+const CREATOR_KEY = 'my_portfolio_creator_v1';
+
+(function initCreatorMode() {
+  const entry = document.getElementById('creatorEntry');
+  const modalEl = document.getElementById('creatorModal');
+  const pwd = document.getElementById('creatorPwd');
+  if (!entry || !modalEl) {
+    window.isCreator = () => false;
+    return;
+  }
+
+  let unlocked = false;
+  try { unlocked = sessionStorage.getItem(CREATOR_KEY) === '1'; } catch (_) {}
+
+  function apply(on) {
+    unlocked = on;
+    document.body.classList.toggle('creator-mode', on);
+    entry.textContent = on ? '🔓 退出创作模式' : '🔒 创作者入口';
+    entry.title = on ? '点击退出创作模式' : '创作者入口';
+    try {
+      if (on) sessionStorage.setItem(CREATOR_KEY, '1');
+      else sessionStorage.removeItem(CREATOR_KEY);
+    } catch (_) {}
+  }
+  apply(unlocked);
+
+  window.isCreator = () => unlocked;
+
+  function openCreatorModal() {
+    modalEl.hidden = false;
+    if (pwd) { pwd.value = ''; setTimeout(() => pwd.focus(), 50); }
+  }
+  function closeCreatorModal() { modalEl.hidden = true; }
+
+  entry.addEventListener('click', () => {
+    if (unlocked) {
+      apply(false);
+      closePanel();
+      toast('已退出创作模式');
+    } else {
+      openCreatorModal();
+    }
+  });
+
+  document.getElementById('creatorClose').addEventListener('click', closeCreatorModal);
+  document.getElementById('creatorCancel').addEventListener('click', closeCreatorModal);
+  modalEl.addEventListener('click', e => { if (e.target === modalEl) closeCreatorModal(); });
+
+  function verify() {
+    if ((pwd.value || '').trim() === CREATOR_PASSWORD) {
+      apply(true);
+      closeCreatorModal();
+      toast('已进入创作模式');
+    } else {
+      toast('密码不正确，请重试');
+      pwd.value = '';
+      pwd.focus();
+    }
+  }
+  document.getElementById('creatorSubmit').addEventListener('click', verify);
+  pwd.addEventListener('keydown', e => { if (e.key === 'Enter') verify(); });
+})();
+
 /* ---------- 事件绑定 ---------- */
 document.getElementById('navEdit').addEventListener('click', openPanel);
 document.getElementById('editClose').addEventListener('click', closePanel);
@@ -1166,8 +1239,9 @@ renderFeatured();
   const hero = document.querySelector('.hero');
   const levels = Array.from(document.querySelectorAll('.level'));
   const lights = Array.from(document.querySelectorAll('.spine-light'));
+  const footer = document.querySelector('.site-footer');
   const chapters = [
-    '02 / ABOUT · 关于我', '03 / WORKS · 作品', '04 / SKILLS · 技能',
+    '02 / WORKS · 作品', '03 / SKILLS · 技能', '04 / ABOUT · 关于我',
     '05 / CV · 履历', '06 / CONTACT · 联系'
   ];
   let ticking = false;
@@ -1193,6 +1267,14 @@ renderFeatured();
 
     if (y > 60 && active >= 0) body.dataset.chapter = chapters[active];
     else body.removeAttribute('data-chapter');
+
+    // 页脚进入视口时，把五行信息带（及章节指示）抬到页脚正上方
+    let lift = 0;
+    if (footer) {
+      const fr = footer.getBoundingClientRect();
+      if (fr.top < vh) lift = Math.max(0, Math.min(fr.height, vh - fr.top));
+    }
+    root.style.setProperty('--strip-bottom', lift.toFixed(1) + 'px');
 
     lights.forEach((l, i) => l.classList.toggle('lit', i <= active));
     ticking = false;

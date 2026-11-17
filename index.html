@@ -6,7 +6,7 @@
 <title>猫爬架作品集 · CAT TREE PORTFOLIO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&family=Ma+Shan+Zheng&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -34,9 +34,9 @@
   <!-- 爪印导航路标 -->
   <nav class="paw-nav" id="pawNav" aria-label="页面导航">
     <a class="paw-step" href="#home" data-target="home"><span class="paw-ico">🐾</span><span class="paw-label">首页</span></a>
-    <a class="paw-step" href="#level-about" data-target="level-about"><span class="paw-ico">🐾</span><span class="paw-label">关于我</span></a>
     <a class="paw-step" href="#level-works" data-target="level-works"><span class="paw-ico">🐾</span><span class="paw-label">作品</span></a>
     <a class="paw-step" href="#level-skills" data-target="level-skills"><span class="paw-ico">🐾</span><span class="paw-label">技能</span></a>
+    <a class="paw-step" href="#level-about" data-target="level-about"><span class="paw-ico">🐾</span><span class="paw-label">关于我</span></a>
     <a class="paw-step" href="#level-cv" data-target="level-cv"><span class="paw-ico">🐾</span><span class="paw-label">履历</span></a>
     <a class="paw-step" href="#level-contact" data-target="level-contact"><span class="paw-ico">🐾</span><span class="paw-label">联系</span></a>
   </nav>
@@ -117,33 +117,33 @@
   <!-- 猫爬架上的猫玩具 -->
   <section class="tree">
 
-    <!-- 01 毛线球 · 关于我 -->
+    <!-- 01 小鱼干 · 作品 -->
+    <div class="level left" id="level-works">
+      <div class="perch"></div>
+      <button class="toy-item fish-toy" data-view="works" aria-label="小鱼干 - 作品">
+        <span class="string"></span>
+        <span class="fish"><i class="fish-eye"></i><i class="fish-line l1"></i><i class="fish-line l2"></i><i class="fish-tail"></i></span>
+        <span class="toy-tag"><b>01</b> 小鱼干 <small>WORKS · 作品</small></span>
+      </button>
+    </div>
+
+    <!-- 02 逗猫棒 · 技能 -->
+    <div class="level right" id="level-skills">
+      <div class="perch"></div>
+      <button class="toy-item feather-toy" data-view="skills" aria-label="逗猫棒 - 技能">
+        <span class="string"></span>
+        <span class="wand"><i class="handle"></i><i class="cord"></i><i class="feather f1"></i><i class="feather f2"></i><i class="feather f3"></i><i class="bell"></i></span>
+        <span class="toy-tag"><b>02</b> 逗猫棒 <small>SKILLS · 技能</small></span>
+      </button>
+    </div>
+
+    <!-- 03 毛线球 · 关于我 -->
     <div class="level left" id="level-about">
       <div class="perch"></div>
       <button class="toy-item yarn-toy" data-view="about" aria-label="毛线球 - 关于我">
         <span class="string"></span>
         <span class="yarn-ball"><i class="yarn-stripe s1"></i><i class="yarn-stripe s2"></i><i class="yarn-stripe s3"></i><i class="yarn-tail"></i></span>
-        <span class="toy-tag"><b>01</b> 毛线球 <small>ABOUT ME · 关于我</small></span>
-      </button>
-    </div>
-
-    <!-- 02 小鱼干 · 作品 -->
-    <div class="level right" id="level-works">
-      <div class="perch"></div>
-      <button class="toy-item fish-toy" data-view="works" aria-label="小鱼干 - 作品">
-        <span class="string"></span>
-        <span class="fish"><i class="fish-eye"></i><i class="fish-line l1"></i><i class="fish-line l2"></i><i class="fish-tail"></i></span>
-        <span class="toy-tag"><b>02</b> 小鱼干 <small>WORKS · 作品</small></span>
-      </button>
-    </div>
-
-    <!-- 03 逗猫棒 · 技能 -->
-    <div class="level left" id="level-skills">
-      <div class="perch"></div>
-      <button class="toy-item feather-toy" data-view="skills" aria-label="逗猫棒 - 技能">
-        <span class="string"></span>
-        <span class="wand"><i class="handle"></i><i class="cord"></i><i class="feather f1"></i><i class="feather f2"></i><i class="feather f3"></i><i class="bell"></i></span>
-        <span class="toy-tag"><b>03</b> 逗猫棒 <small>SKILLS · 技能</small></span>
+        <span class="toy-tag"><b>03</b> 毛线球 <small>ABOUT ME · 关于我</small></span>
       </button>
     </div>
 
@@ -171,6 +171,7 @@
   <footer class="site-footer">
     <span>© 2026 <span data-profile-field="name">泡芙</span> · CAT TREE PORTFOLIO</span>
     <span data-profile-field="footerNote">Made with care &amp; a little bit of catnip.</span>
+    <button class="creator-entry" id="creatorEntry" title="创作者入口" aria-label="创作者入口">🔒 创作者入口</button>
   </footer>
 </div>
 
@@ -307,6 +308,21 @@
     <div class="modal-foot">
       <button class="cancel-btn" id="modalCancel">取消</button>
       <button class="save-btn" id="modalSave">保存作品</button>
+    </div>
+  </div>
+</div>
+
+<!-- 创作者验证弹窗 -->
+<div class="modal" id="creatorModal" hidden>
+  <div class="modal-box creator-box">
+    <div class="modal-head"><h3>🐾 创作者验证</h3><button class="close-btn" id="creatorClose" aria-label="关闭">&times;</button></div>
+    <div class="modal-body">
+      <p class="hint">此页面仅供浏览。如需编辑内容，请输入创作者密码。</p>
+      <div class="field-group"><label>创作者密码</label><input type="password" id="creatorPwd" placeholder="输入密码" autocomplete="off"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="cancel-btn" id="creatorCancel">取消</button>
+      <button class="save-btn" id="creatorSubmit">验证并进入</button>
     </div>
   </div>
 </div>
