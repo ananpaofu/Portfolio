@@ -76,9 +76,11 @@ body[data-chapter]::after{opacity:.9;transform:none}
 body.pop-open{overflow:hidden}
 
 /* 编辑按钮：默认隐藏，仅创作者模式可见 */
-.edit-fab{position:fixed;top:18px;right:64px;z-index:78;display:none;border:1.5px solid var(--ink);background:var(--mustard);padding:7px 14px;font-size:14px;font-weight:700;box-shadow:3px 3px 0 var(--ink);transition:transform .2s,box-shadow .2s}
-body.creator-mode .edit-fab{display:block}
-.edit-fab:hover{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.edit-fab{position:fixed;top:11px;right:calc(6vw + 92px);z-index:78;display:none;height:34px;padding:0 13px;
+  border:1.5px solid var(--ink);border-radius:9px;background:var(--mustard);color:var(--ink);
+  font-size:13px;font-weight:700;letter-spacing:.02em;transition:transform .2s,background .25s,color .25s,border-color .25s}
+body.creator-mode .edit-fab{display:flex;align-items:center}
+.edit-fab:hover{transform:translateY(-2px);background:var(--accent);color:#fff;border-color:var(--accent)}
 
 /* 创作者入口：低调地放在页脚，访客看到的只是提示 */
 .creator-entry{margin-left:auto;background:transparent;border:1px dashed var(--muted);color:var(--muted);border-radius:var(--r-pill);padding:4px 12px;font-size:14px;letter-spacing:.02em;transition:border-color .25s,color .25s,background .25s}
@@ -94,21 +96,66 @@ body.creator-mode .creator-entry{border-style:solid;border-color:var(--moss);col
   filter:drop-shadow(0 2px 3px rgba(60,40,20,.3));transform-origin:50% 90%;animation:progressCat 1.8s ease-in-out infinite}
 @keyframes progressCat{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(8deg) translateY(-3px)}}
 
-/* 主柱（封面之后才出现） */
+/* 横向猫爬架：主柱从屏幕左边缘伸出，贯穿整条轨道 */
 .world{position:relative;overflow:hidden;min-height:100vh}
-.spine{position:absolute;left:50%;top:100vh;bottom:0;width:88px;transform:translateX(-50%);z-index:0;
-  background:repeating-linear-gradient(0deg,rgba(90,60,30,.24) 0 2px,transparent 2px 13px),repeating-linear-gradient(45deg,var(--sisal) 0 9px,var(--sisal-dark) 9px 18px);
-  border-radius:44px 48px 43px 46px/48px 43px 47px 44px;
-  box-shadow:inset -16px 0 20px rgba(0,0,0,.18),inset 12px 0 16px rgba(255,255,255,.18),12px 0 0 rgba(125,85,55,.15)}
-.spine-coil{position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(0deg,transparent 0 10px,rgba(255,255,255,.2) 10px 12px)}
-/* 柱顶盖帽与绑绳节：让主柱读起来像真正的猫爬架 */
-.spine::before{content:'';position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:104px;height:20px;border-radius:50%;
-  background:radial-gradient(ellipse at 50% 35%,var(--sisal),var(--wood-dark));border:2px solid var(--wood-dark);
-  box-shadow:0 5px 0 rgba(90,60,30,.25),inset 0 2px 0 rgba(255,255,255,.3)}
+.tree{position:relative;z-index:1;height:clamp(640px,88vh,820px);overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,253,247,.42),rgba(231,217,192,.26));border-top:1px solid var(--line)}
+.tree-head{height:100px;padding:10px 6vw 12px;display:flex;flex-direction:column;justify-content:center;gap:10px;
+  border-bottom:1px dashed var(--line)}
+.tree-head-top{display:flex;align-items:center;gap:16px}
+.tree-hint{font-size:14px;letter-spacing:.06em;color:var(--muted)}
+.tree-controls{display:flex;gap:6px;margin-left:auto}
+.tree-arrow{width:32px;height:32px;display:grid;place-items:center;border:1.5px solid var(--ink);border-radius:9px;
+  background:var(--paper);color:var(--ink);font-size:22px;line-height:1;padding-bottom:2px;
+  transition:transform .25s var(--ease-soft),background .25s,color .25s}
+.tree-arrow:hover{background:var(--mustard);transform:translateY(-2px)}
+
+/* 滑动轨装置：麻绳轨道 + 跟着走的小猫，直接控制横向猫爬架 */
+.tree-slider{position:relative;width:min(760px,100%);height:34px;margin:0 auto;cursor:pointer;touch-action:none;outline:none;
+  user-select:none;-webkit-user-select:none}
+.slider-rail{position:absolute;left:0;right:0;top:14px;height:12px;border-radius:8px;
+  background:repeating-linear-gradient(90deg,var(--sisal) 0 8px,var(--sisal-dark) 8px 14px);
+  border:1.5px solid var(--wood-dark);box-shadow:0 3px 0 rgba(90,60,30,.18),inset 0 1px 0 rgba(255,255,255,.35)}
+.slider-rail::before,.slider-rail::after{content:'🐾';position:absolute;top:-11px;font-size:12px;opacity:.45}
+.slider-rail::before{left:6px}
+.slider-rail::after{right:6px}
+.slider-fill{position:absolute;left:0;top:14px;height:12px;width:0;border-radius:8px;pointer-events:none;
+  background:linear-gradient(90deg,var(--mustard),var(--accent));opacity:.7}
+.slider-handle{position:absolute;top:2px;left:0;width:36px;height:36px;translate:-50% 0;border-radius:50%;
+  display:grid;place-items:center;background:var(--paper);border:2px solid var(--ink);cursor:grab;
+  box-shadow:2px 3px 0 rgba(90,70,45,.25);transition:box-shadow .2s,transform .18s var(--ease-soft)}
+.tree-slider.dragging .slider-handle{cursor:grabbing;transform:scale(1.1);box-shadow:0 0 0 5px rgba(224,178,63,.35),2px 3px 0 rgba(90,70,45,.25)}
+.slider-cat{font-size:21px;line-height:1;display:block;transform:rotate(-8deg)}
+.tree-slider.moving .slider-cat{animation:sliderCatStep .42s ease-in-out infinite}
+@keyframes sliderCatStep{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-3px) rotate(5deg)}}
+.slider-end{position:absolute;top:26px;font-family:var(--display);font-size:11px;letter-spacing:.12em;color:var(--muted);opacity:.6}
+.slider-start{left:0}
+.slider-finish{right:0}
+.tree-slider:focus-visible .slider-handle{box-shadow:0 0 0 4px var(--accent),2px 3px 0 rgba(90,70,45,.25)}
+
+.tree-viewport{position:relative;height:calc(100% - 100px);overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;overscroll-behavior-inline:contain}
+.tree-viewport::-webkit-scrollbar{display:none}
+.tree-track{position:relative;display:flex;align-items:center;gap:clamp(24px,3vw,52px);
+  width:max-content;min-width:100%;height:100%;padding:0 clamp(60px,9vw,140px) 0 clamp(110px,14vw,190px)}
+.spine{position:absolute;left:0;right:0;top:50%;height:88px;transform:translateY(-50%);z-index:0;
+  background:repeating-linear-gradient(90deg,rgba(90,60,30,.24) 0 2px,transparent 2px 13px),repeating-linear-gradient(45deg,var(--sisal) 0 9px,var(--sisal-dark) 9px 18px);
+  border-radius:44px;box-shadow:inset 0 -16px 20px rgba(0,0,0,.18),inset 0 12px 16px rgba(255,255,255,.18),0 12px 0 rgba(125,85,55,.15)}
+/* 麻绳纹理沿横向缓缓流动，和整体方向一致 */
+.spine-coil{position:absolute;inset:0 -22px 0 0;border-radius:inherit;
+  background:repeating-linear-gradient(90deg,transparent 0 10px,rgba(255,253,247,.28) 10px 12px);
+  background-size:22px 100%;animation:ropeFlowRight 6s linear infinite;will-change:transform}
+@keyframes ropeFlowRight{to{transform:translateX(-22px)}}
+/* 左端盖帽与绑绳节：让主柱读起来像真正的猫爬架 */
+.spine::before{content:'';position:absolute;left:-15px;top:50%;transform:translateY(-50%);width:20px;height:104px;border-radius:50%;
+  background:radial-gradient(ellipse at 35% 50%,var(--sisal),var(--wood-dark));border:2px solid var(--wood-dark);
+  box-shadow:5px 0 0 rgba(90,60,30,.25),inset 2px 0 0 rgba(255,255,255,.3)}
 .spine::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent 0 84px,rgba(90,60,30,.26) 84px 94px,transparent 94px 176px)}
-.spine-light{position:absolute;left:50%;width:13px;height:13px;margin-left:-6.5px;border-radius:50%;background:#6b5a40;box-shadow:inset 0 -2px 3px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.15);z-index:2;transition:background .6s,box-shadow .6s,transform .6s var(--ease-soft)}
-/* 滚动经过的灯逐盏点亮，像猫爬架被唤醒 */
+  background:repeating-linear-gradient(90deg,transparent 0 84px,rgba(90,60,30,.26) 84px 94px,transparent 94px 176px)}
+.spine-light{position:absolute;top:50%;width:13px;height:13px;margin-top:-6.5px;border-radius:50%;background:#6b5a40;
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.15);z-index:2;
+  transition:background .6s,box-shadow .6s,transform .6s var(--ease-soft)}
+/* 横向经过的灯逐盏点亮，像猫爬架被唤醒 */
 .spine-light.lit{background:var(--mustard);transform:scale(1.18);box-shadow:0 0 12px 4px rgba(224,178,63,.5),inset 0 -2px 2px rgba(120,80,10,.45)}
 body.night .spine-light.lit{box-shadow:0 0 16px 6px rgba(255,205,110,.85),0 0 34px 10px rgba(255,170,60,.38),inset 0 -2px 2px rgba(160,100,20,.5)}
 body.night .spine-light{background:#ffd87a;box-shadow:0 0 10px 3px rgba(255,196,92,.7),0 0 26px 6px rgba(255,170,60,.3),inset 0 -2px 2px rgba(160,100,20,.5);animation:lampGlow 2.6s ease-in-out infinite}
@@ -124,6 +171,29 @@ body.night .spine-light{background:#ffd87a;box-shadow:0 0 10px 3px rgba(255,196,
 .paw-step.active .paw-ico{filter:none;transform:scale(1.15) rotate(-14deg);animation:pawBeat 2.4s ease-in-out infinite}
 @keyframes pawBeat{0%,100%{transform:scale(1.15) rotate(-14deg)}50%{transform:scale(1.3) rotate(-8deg)}}
 body.night .paw-step:hover,body.night .paw-step.active{background:rgba(27,38,63,.85)}
+
+/* 进入猫爬架：顶部导航淡出，左侧剑麻磨爪板导航滑入 */
+.paw-nav{transition:opacity .5s var(--ease-soft),transform .5s var(--ease-soft)}
+body.in-tree .paw-nav{opacity:0;transform:translateY(-100%);pointer-events:none}
+.scratch-nav{position:fixed;left:0;top:50%;z-index:77;transform:translate(-120%,-50%);opacity:0;pointer-events:none;
+  transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .5s var(--ease-soft)}
+body.in-tree .scratch-nav{transform:translate(22px,-50%);opacity:1;pointer-events:auto}
+.scratch-board{position:relative;width:104px;padding:14px 9px;border-radius:16px;
+  background:repeating-linear-gradient(8deg,#d9c9a3 0,#d9c9a3 2px,#cbb68c 2px,#cbb68c 4px,#e0d2b0 4px,#e0d2b0 5px);
+  border:2px solid #a68f63;box-shadow:4px 8px 20px rgba(90,70,45,.28),inset 0 0 0 3px rgba(255,253,247,.35);
+  display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.scratch-links{display:flex;flex-direction:column;gap:4px}
+.scratch-step{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border-radius:9px;
+  font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.04em;color:#5b4327;text-decoration:none;
+  background:rgba(255,253,247,.62);border:1px solid rgba(138,107,63,.5);
+  transition:transform .25s var(--ease-soft),background .25s,color .25s,box-shadow .25s}
+.scratch-step span{font-size:14px;filter:grayscale(.5);transition:filter .25s,transform .25s}
+.scratch-step:hover{transform:translateX(3px);background:rgba(255,253,247,.95)}
+.scratch-step.active{background:var(--paper);color:var(--accent);box-shadow:2px 3px 0 rgba(90,70,45,.22)}
+.scratch-step.active span{filter:none;transform:scale(1.15) rotate(-12deg)}
+body.night .scratch-board{filter:brightness(.78) saturate(.9)}
+body.night .scratch-step{color:#3b2e1c;background:rgba(245,238,222,.82)}
+body.night .scratch-step.active{color:var(--accent)}
 
 /* 竖屏导航：默认隐藏，窄屏启用 */
 .mobile-nav-btn,.mobile-nav-mask,.mobile-nav-drawer{display:none}
@@ -241,76 +311,56 @@ body.night .voxel-eye .face{filter:brightness(1.5) drop-shadow(0 0 6px rgba(170,
 .n2{left:50%;top:24%;font-size:14px;transform:translateX(-50%) rotate(-4deg);animation-delay:-2s}
 .n3{left:84%;bottom:15%;transform:rotate(-4deg);color:var(--moss);animation-delay:-4s}
 @keyframes noteFloat{0%,100%{margin-top:0}50%{margin-top:-5px}}
-.level{opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}
+.level{position:relative;flex:0 0 clamp(280px,30vw,400px);height:100%;z-index:2;opacity:0;transform:translateX(26px);
+  transition:opacity .75s var(--ease-soft),transform .75s var(--ease-soft);scroll-snap-align:center}
 .level.in-view{opacity:1;transform:none}
 
-/* 层级：以立柱为中轴，一屏一章节，统一偏移与留白 */
-.tree{position:relative;z-index:1;padding:0 0 60px}
-.level{position:relative;height:55vh;min-height:380px;display:flex;align-items:center;padding:0 6vw}
-.level.left{justify-content:flex-start}
-.level.right{justify-content:flex-end}
+/* 层级：坐在主柱上方 / 挂在下方，交替前进 */
 /* 跳板本体：麻绳包面 + 木芯 + 下方支撑，让爬架真正成形 */
-.perch{position:absolute;height:28px;z-index:1;
+.perch{position:absolute;z-index:2;height:28px;
   background:repeating-linear-gradient(90deg,var(--sisal) 0 9px,var(--sisal-dark) 9px 15px);
   border:2px solid var(--wood-dark);border-radius:8px 10px 7px 9px;
   box-shadow:0 9px 0 rgba(90,60,30,.22),0 14px 18px rgba(60,40,20,.16),inset 0 2px 0 rgba(255,255,255,.34)}
-.perch::before,.perch::after{content:'';position:absolute;top:100%;width:9px;height:40px;background:linear-gradient(90deg,var(--wood-dark),var(--wood));border-radius:0 0 4px 4px;opacity:.72}
+.perch::before,.perch::after{content:'';position:absolute;top:100%;width:9px;height:34px;background:linear-gradient(90deg,var(--wood-dark),var(--wood));border-radius:0 0 4px 4px;opacity:.72}
 .perch::before{left:16px}
 .perch::after{right:16px}
-/* 跳板与挂件共用同一中轴偏移，左右完全对称 */
-.level .perch{width:300px;bottom:26%;left:auto;right:auto}
-.level.left .perch{left:calc(50% - 250px)}
-.level.right .perch{right:calc(50% - 250px)}
-.level .perch.small{width:250px}
-.level .perch.wide{width:300px}
-/* 小鱼干章节（作品，现为第一层）作为视觉重心，略宽松 */
-.tree .level:nth-child(1){height:62vh}
-/* 收尾纸箱：向下留页脚缓冲 */
-.level.last{height:50vh}
-.level.last .perch{bottom:24%}
+/* 坐着的跳板踏在柱子上；挂着的用短托座挂在柱子下方 */
+.level.top .perch{left:50%;translate:-50% 0;bottom:calc(50% + 44px);width:270px}
+.level.hang .perch{left:50%;translate:-50% 0;top:calc(50% + 44px);width:148px;height:16px;border-radius:7px}
+.level.hang .perch::before,.level.hang .perch::after{display:none}
+.level.last .perch{width:300px}
 
-/* 猫玩具本体：统一宽度容器与中轴偏移 */
-.toy-item{position:absolute;z-index:3;width:200px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  border:none;background:none;padding:0;bottom:calc(26% + 28px);transform-origin:50% 0;translate:0 var(--toy-y,0px);
+/* 猫玩具本体：统一宽度容器，沿主柱上下交替摆放 */
+.toy-item{position:absolute;left:50%;z-index:4;width:220px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  border:none;background:none;padding:0;translate:-50% var(--toy-y,0px);transform-origin:50% 100%;
   transition:translate .35s var(--ease-soft),transform .45s cubic-bezier(.2,.8,.2,1),filter .45s}
-.level.left .toy-item{left:calc(50% - 250px)}
-.level.right .toy-item{right:calc(50% - 250px)}
+.level.top .toy-item{bottom:calc(50% + 44px + 28px)}
+.level.hang .toy-item{top:calc(50% + 44px + 16px);bottom:auto}
 .toy-item:hover{transform:translateY(-10px) rotate(-5deg) scale(1.06);z-index:6;filter:drop-shadow(0 12px 12px rgba(70,45,20,.26))}
 .toy-item:hover .toy-tag{background:var(--paper);border-color:var(--ink);box-shadow:3px 4px 0 rgba(196,98,60,.28)}
 .toy-item:active{transform:translateY(-4px) scale(.98)}
-/* 猫爬架两边的装饰猫：低透明度，只可拖拽旋转 */
-.decor-cat{position:absolute;top:40%;z-index:1;width:140px;height:140px;opacity:.22;cursor:grab;touch-action:none;
+/* 装饰猫：像沿着主柱散步的小猫，只可拖拽旋转 */
+.decor-cat{position:absolute;left:4px;top:50%;translate:0 -50%;z-index:1;width:86px;height:86px;opacity:.18;cursor:grab;touch-action:none;
   transition:opacity .4s var(--ease-soft);filter:grayscale(.15)}
-/* 装饰猫脚下的小木台与立柱刻度，填补两侧空白并强化爬架结构 */
-.decor-cat::before{content:'';position:absolute;left:50%;top:88%;transform:translateX(-50%);width:170px;height:14px;
-  background:repeating-linear-gradient(90deg,var(--sisal) 0 8px,var(--sisal-dark) 8px 13px);
-  border:1.5px solid var(--wood-dark);border-radius:6px;opacity:.9;pointer-events:none}
-.decor-cat::after{content:'';position:absolute;left:50%;top:96%;transform:translateX(-50%);width:9px;height:46px;
-  background:linear-gradient(90deg,var(--wood-dark),var(--wood));opacity:.7;pointer-events:none}
+.decor-cat::before,.decor-cat::after{display:none}
 .decor-cat:hover{opacity:.42}
 .decor-cat:active{cursor:grabbing}
-.level.left .decor-cat{right:9vw}
-.level.right .decor-cat{left:9vw}
 .decor-stage{width:100%;height:100%;display:grid;place-items:center;perspective:9000px}
 .decor-voxel{position:relative;width:0;height:0;transform-style:preserve-3d;will-change:transform}
 /* 装饰猫复用体素方块的面样式，去掉条纹纹理的强对比 */
 
-/* 两侧填充：环境剪影 + 竖排注释 + 爪印轨迹，低明度不抢挂件 */
-/* 猫抓板 / 吊床剪影，放在挂件对侧，填补大块空白 */
-.level::before{content:'';position:absolute;top:18%;bottom:18%;width:clamp(180px,24vw,340px);z-index:0;pointer-events:none;
-  border:2px solid var(--wood-dark);opacity:.24;
+/* 章节背景：淡淡的猫抓板剪影，贴着主柱，不抢挂件 */
+.level::before{content:'';position:absolute;left:50%;top:50%;translate:-50% -50%;width:220px;height:180px;z-index:0;pointer-events:none;
+  border:2px solid var(--wood-dark);opacity:.13;border-radius:48% 48% 44% 44%;
   background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(168,120,79,.16) 9px 12px),linear-gradient(180deg,rgba(217,195,160,.24),rgba(194,166,126,.14))}
-.level.left::before{right:7vw;border-radius:70px 70px 12px 12px/50px 50px 12px 12px}
-.level.right::before{left:7vw;border-radius:12px 12px 60px 60px/12px 12px 45px 45px;
-  background:repeating-linear-gradient(0deg,transparent 0 9px,rgba(168,120,79,.16) 9px 12px),linear-gradient(180deg,rgba(217,195,160,.14),rgba(194,166,126,.24))}
-/* 竖排注释 + 首尾爪印，形成沿爬架慢慢走下去的轨迹感 */
-.level::after{position:absolute;writing-mode:vertical-rl;font-family:var(--serif);font-size:14px;letter-spacing:.25em;
+/* 横向短注释，贴在主柱另一侧，形成沿架子往前走的感觉 */
+.level::after{position:absolute;left:50%;translate:-50% 0;white-space:nowrap;font-family:var(--serif);font-size:14px;letter-spacing:.18em;
   color:var(--muted);opacity:.5;pointer-events:none;z-index:2;text-shadow:0 1px 0 rgba(255,255,255,.4)}
-.level.left::after{left:8vw;top:28%}
-.level.right::after{right:8vw;top:28%}
+.level.top::after{top:calc(50% + 64px)}
+.level.hang::after{bottom:calc(50% + 60px)}
 .tree .level:nth-child(1)::after{content:'🐾 像小鱼干一样认真 · 作品 🐾'}
 .tree .level:nth-child(2)::after{content:'🐾 逗猫棒般的灵巧 · 技能 🐾'}
-.tree .level:nth-child(3)::after{content:'🐾 从一团毛线开始 · 关于我 🐾'}
+.tree .level:nth-child(3)::after{content:'🐾 从一团毛线开始 · 个人简介 🐾'}
 .tree .level:nth-child(4)::after{content:'🐾 猫薄荷的好奇心 · 履历 🐾'}
 .tree .level:nth-child(5)::after{content:'🐾 钻进纸箱聊聊天 · 联系 🐾'}
 /* 统一挂件体量：每个图标占据相同高度带，避免左右重量失衡 */
@@ -325,16 +375,17 @@ body.night .voxel-eye .face{filter:brightness(1.5) drop-shadow(0 0 6px rgba(170,
 @keyframes wandSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(7deg)}}
 @keyframes mouseTwitch{0%,88%,100%{transform:rotate(0)}92%{transform:rotate(-7deg)}96%{transform:rotate(5deg)}}
 @keyframes boxBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-/* 吊绳统一长度，所有挂件共用同一悬挂高度 */
+/* 吊绳统一长度，只给挂在柱子下方的挂件 */
 .string{position:absolute;top:-64px;left:50%;width:2px;height:66px;background:var(--wood-dark);transform:rotate(-2deg)}
 .string::before{content:'';position:absolute;top:-6px;left:-4px;width:10px;height:10px;border:2px solid var(--wood-dark);border-radius:50%}
-/* 组内留白固定（挂件与标签），标签统一居中对齐挂件 */
-.toy-tag{margin-top:16px;font-family:var(--display);font-size:14px;white-space:nowrap;text-align:center;
-  background:rgba(255,253,247,.9);border:1.5px solid var(--border-idle);border-radius:10px 7px 12px 8px;padding:5px 12px;
+/* 文字说明卡片：比原来更宽更醒目，仍然保持手作标签气质 */
+.toy-tag{margin-top:14px;min-width:206px;font-family:var(--display);font-size:16px;white-space:nowrap;text-align:center;
+  background:rgba(255,253,247,.93);border:1.5px solid var(--border-idle);border-radius:12px 9px 14px 10px;padding:8px 16px 9px;
   box-shadow:2px 3px 0 rgba(90,70,45,.18);transform:rotate(-2deg);
   transition:border-color .3s var(--ease-soft),background .3s,box-shadow .3s,transform .3s var(--ease-soft)}
-.toy-tag b{color:var(--accent);margin-right:4px}
-.toy-tag small{display:block;font-family:var(--sans);font-size:14px;letter-spacing:.08em;color:var(--muted);font-weight:600;text-align:center;margin-left:0}
+.toy-tag b{color:var(--accent);margin-right:6px;font-size:16px}
+.toy-tag small{display:block;font-family:var(--sans);font-size:13px;letter-spacing:.1em;color:var(--muted);font-weight:600;text-align:center;margin-left:0;margin-top:2px}
+body.night .toy-tag{background:rgba(27,38,63,.95)}
 
 /* 01 毛线球 */
 .yarn-ball{position:relative;width:104px;height:104px;border-radius:50%;
@@ -813,26 +864,28 @@ body.night .timeline::before{background:var(--line)}
   .paw-step .paw-label{display:none}
   .paw-step{padding:5px 6px}
   body::after{display:none}
-  .spine{width:64px}
-  .level{height:52vh;min-height:360px;padding:0 5vw}
-  .tree .level:nth-child(1){height:58vh}
-  .level.last{height:48vh}
-  .level .perch{width:240px;bottom:24%}
-  .level.left .perch,.level.left .toy-item{left:calc(50% - 180px)}
-  .level.right .perch,.level.right .toy-item{right:calc(50% - 180px)}
-  .toy-item{bottom:calc(24% + 26px);width:170px}
-  .level::before,.level:after{display:none}
-  .decor-cat{width:100px;height:100px;top:auto;bottom:16%;opacity:.16}
-  .decor-cat::before{width:120px;height:10px}
-  .decor-cat::after{height:30px}
-  .level.left .decor-cat{right:5vw}
-  .level.right .decor-cat{left:5vw}
+  .tree{height:clamp(600px,84vh,720px)}
+  .tree-track{gap:22px;padding-right:70px;padding-left:96px}
+  .spine{height:70px}
+  .spine::before{height:86px}
+  .spine-light{width:11px;height:11px;margin-top:-5.5px}
+  .level{flex-basis:300px}
+  .level.top .perch{bottom:calc(50% + 35px);width:220px}
+  .level.hang .perch{top:calc(50% + 35px);width:120px}
+  .level.top .toy-item{bottom:calc(50% + 35px + 28px);width:190px}
+  .level.hang .toy-item{top:calc(50% + 35px + 16px);width:190px}
+  .level.last .perch{width:240px}
+  .string{top:-54px;height:56px}
+  .toy-tag{min-width:186px;font-size:15px;padding:7px 12px}
+  .toy-tag small{font-size:12px}
+  .decor-cat{width:70px;height:70px;left:0}
+  .level::before{display:none}
 }
 @media(max-width:640px){
-  .spine{width:48px;opacity:.85}
   body::before{height:50px;padding:0 5vw;font-size:14px;color:transparent}
   .theme-fab{top:8px;right:5vw}
   .music-fab{right:calc(5vw + 42px)}
+  .edit-fab{top:8px;right:calc(5vw + 92px);font-size:12px;padding:0 10px}
   .hero{height:auto;min-height:100vh;padding:90px 6vw 60px;display:flex;flex-direction:column;align-items:flex-start}
   .hero-copy{position:relative;top:auto;left:auto;transform:none;width:100%;padding:22px 20px 24px 24px}
   .hero-copy::before{top:22px;bottom:24px}
@@ -854,15 +907,44 @@ body.night .timeline::before{background:var(--line)}
   .hero-sparkles{display:none}
   .hero-note{display:none}
   .paw-nav{display:none}
+  .scratch-nav{display:none}
   .skill-levels{grid-template-columns:1fr}
   .process-strip{gap:5px;padding:10px}
   .process-step small{display:none}
   .featured-card{flex-basis:210px;height:140px}
-  .level{height:auto;min-height:0;flex-direction:column;gap:14px;padding:54px 6vw 100px}
-  .tree .level:nth-child(1),.level.last{height:auto}
-  .level .perch{display:none}
-  .level.left .toy-item,.level.right .toy-item{position:relative;left:auto;right:auto;bottom:auto;margin:10px auto;z-index:5}
-  .string{display:none}
+  .tree{height:clamp(560px,80vh,680px)}
+  .tree-head{height:88px;padding:8px 5vw 10px;gap:8px}
+  .tree-hint{display:none}
+  .tree-slider{height:30px;width:100%}
+  .slider-rail,.slider-fill{top:12px}
+  .slider-handle{top:0;width:32px;height:32px}
+  .slider-cat{font-size:18px}
+  .slider-end{display:none}
+  .tree-viewport{height:calc(100% - 88px)}
+  .tree-track{gap:14px;padding:0 42px 0 58px}
+  .spine{height:58px;opacity:.9}
+  .spine::before{left:-11px;width:16px;height:72px}
+  .spine-light{width:9px;height:9px;margin-top:-4.5px}
+  .level{flex-basis:76vw;min-width:250px}
+  .level.top .perch{bottom:calc(50% + 29px);width:180px}
+  .level.hang .perch{top:calc(50% + 29px);width:100px}
+  .level.top .toy-item{bottom:calc(50% + 29px + 28px);width:170px}
+  .level.hang .toy-item{top:calc(50% + 29px + 16px);width:170px}
+  .level.last .perch{width:190px}
+  .toy-item > span:not(.string):not(.toy-tag){min-height:88px}
+  .fish{width:120px;height:64px}
+  .yarn-ball{width:88px;height:88px}
+  .wand{width:100px;height:130px}
+  .mouse{width:100px;height:64px}
+  .cardboard-box{width:120px;height:92px}
+  .string{top:-48px;height:50px}
+  .toy-tag{min-width:168px;font-size:14px;padding:6px 10px}
+  .toy-tag b{font-size:14px}
+  .toy-tag small{font-size:11px}
+  .decor-cat{display:none}
+  .level::after{font-size:12px}
+  .level.top::after{top:calc(50% + 60px)}
+  .level.hang::after{bottom:calc(50% + 56px)}
   .toy-item:hover{transform:translateY(-8px) rotate(-4deg) scale(1.05)}
   .pop-card{width:94vw;border-radius:12px}
   .pop-card::before{inset:5px;border-radius:8px}

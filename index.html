@@ -23,38 +23,42 @@
   <!-- 背景生态层 -->
   <div class="eco-layer" id="ecoLayer" aria-hidden="true"></div>
 
-  <!-- 猫爬架主柱（从封面之后开始） -->
-  <div class="spine" aria-hidden="true">
-    <span class="spine-coil"></span>
-    <i class="spine-light" style="top:9%"></i>
-    <i class="spine-light" style="top:27%"></i>
-    <i class="spine-light" style="top:45%"></i>
-    <i class="spine-light" style="top:63%"></i>
-    <i class="spine-light" style="top:81%"></i>
-  </div>
-
   <!-- 竖屏导航：点击顶部 CAT TREE 从左侧滑出 -->
   <button class="mobile-nav-btn" id="mobileNavBtn" aria-label="打开导航" aria-expanded="false">🐾 CAT TREE <span class="mnb-caret">›</span></button>
   <div class="mobile-nav-mask" id="mobileNavMask"></div>
   <nav class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="移动端导航">
     <div class="mnd-head"><span>🐾 CAT TREE</span><button class="mnd-close" id="mobileNavClose" aria-label="关闭导航">&times;</button></div>
-    <p class="mnd-tip">顺着猫爬架，跳到想去的楼层</p>
+    <p class="mnd-tip">顺着猫爬架，跳到想去的玩具</p>
     <a class="mnd-link" href="#home" data-target="home"><span class="mnd-num">01</span><span class="mnd-ico">🐾</span>首页</a>
     <a class="mnd-link" href="#featured" data-target="featured"><span class="mnd-num">02</span><span class="mnd-ico">🐾</span>作品</a>
     <a class="mnd-link" href="#level-skills" data-target="level-skills"><span class="mnd-num">03</span><span class="mnd-ico">🐾</span>技能</a>
-    <a class="mnd-link" href="#level-about" data-target="level-about"><span class="mnd-num">04</span><span class="mnd-ico">🐾</span>关于我</a>
+    <a class="mnd-link" href="#level-about" data-target="level-about"><span class="mnd-num">04</span><span class="mnd-ico">🐾</span>个人简介</a>
     <a class="mnd-link" href="#level-cv" data-target="level-cv"><span class="mnd-num">05</span><span class="mnd-ico">🐾</span>履历</a>
     <a class="mnd-link" href="#level-contact" data-target="level-contact"><span class="mnd-num">06</span><span class="mnd-ico">🐾</span>联系</a>
   </nav>
 
-  <!-- 爪印导航路标 -->
+  <!-- 爪印导航路标（进入猫爬架时转移到左侧磨爪板） -->
   <nav class="paw-nav" id="pawNav" aria-label="页面导航">
     <a class="paw-step" href="#home" data-target="home"><span class="paw-ico">🐾</span><span class="paw-label">首页</span></a>
     <a class="paw-step" href="#featured" data-target="featured"><span class="paw-ico">🐾</span><span class="paw-label">作品</span></a>
     <a class="paw-step" href="#level-skills" data-target="level-skills"><span class="paw-ico">🐾</span><span class="paw-label">技能</span></a>
-    <a class="paw-step" href="#level-about" data-target="level-about"><span class="paw-ico">🐾</span><span class="paw-label">关于我</span></a>
+    <a class="paw-step" href="#level-about" data-target="level-about"><span class="paw-ico">🐾</span><span class="paw-label">个人简介</span></a>
     <a class="paw-step" href="#level-cv" data-target="level-cv"><span class="paw-ico">🐾</span><span class="paw-label">履历</span></a>
     <a class="paw-step" href="#level-contact" data-target="level-contact"><span class="paw-ico">🐾</span><span class="paw-label">联系</span></a>
+  </nav>
+
+  <!-- 猫爬架里的剑麻磨爪板导航（桌面端滚动到猫爬架时出现） -->
+  <nav class="scratch-nav" id="scratchNav" aria-label="猫爬架导航">
+    <div class="scratch-board">
+      <div class="scratch-links">
+        <a class="scratch-step" href="#home" data-target="home"><span>🐾</span>首页</a>
+        <a class="scratch-step" href="#featured" data-target="featured"><span>🐾</span>作品</a>
+        <a class="scratch-step" href="#level-skills" data-target="level-skills"><span>🐾</span>技能</a>
+        <a class="scratch-step" href="#level-about" data-target="level-about"><span>🐾</span>个人简介</a>
+        <a class="scratch-step" href="#level-cv" data-target="level-cv"><span>🐾</span>履历</a>
+        <a class="scratch-step" href="#level-contact" data-target="level-contact"><span>🐾</span>联系</a>
+      </div>
+    </div>
   </nav>
 
   <!-- 封面 -->
@@ -73,7 +77,7 @@
       <div class="hero-rule"></div>
       <div class="hero-guide">
         <span class="guide-mark">↺</span>
-        <p class="hero-hint">拖动中间的方块猫转一圈，滚轮或 <b>＋ / －</b> 放大；<br>点右边图鉴还能换花色。顺着柱子往下，每块跳板都挂着一只猫玩具。</p>
+        <p class="hero-hint">拖动中间的方块猫转一圈，滚轮或 <b>＋ / －</b> 放大；<br>点右边图鉴还能换花色。顺着猫爬架往右，每块跳板都停着一只猫玩具。</p>
       </div>
       <div class="hero-index"><span><b>01</b> — 05</span><span>SCROLL <b>↓</b></span></div>
     </div>
@@ -116,7 +120,7 @@
     <div class="hero-sparkles" id="sparkles" aria-hidden="true"></div>
     <button class="hero-gateway" id="heroGateway" aria-label="进入猫爬架">
       <span class="gateway-paw">🐾</span>
-      <span class="gateway-text">顺着柱子往下 <b>↓</b></span>
+      <span class="gateway-text">顺着猫爬架往右 <b>→</b></span>
       <span class="gateway-sub">CLICK TO EXPLORE</span>
     </button>
   </section>
@@ -130,58 +134,91 @@
     <div class="featured-track" id="featuredTrack"></div>
   </section>
 
-  <!-- 猫爬架上的猫玩具 -->
-  <section class="tree">
-
-    <!-- 01 小鱼干 · 作品 -->
-    <div class="level left" id="level-works">
-      <div class="perch"></div>
-      <button class="toy-item fish-toy" data-view="works" aria-label="小鱼干 - 作品">
-        <span class="string"></span>
-        <span class="fish"><i class="fish-eye"></i><i class="fish-line l1"></i><i class="fish-line l2"></i><i class="fish-tail"></i></span>
-        <span class="toy-tag"><b>01</b> 小鱼干 <small>WORKS · 作品</small></span>
-      </button>
+  <!-- 横向猫爬架：从屏幕左侧伸出，玩具坐在架上 / 挂在架下 -->
+  <section class="tree" id="catTree">
+    <div class="tree-head">
+      <div class="tree-head-top">
+        <span class="mini-label">CAT TREE · 横向猫爬架</span>
+        <span class="tree-hint">拖动滑杆 / 拖动画面 / ← → 控制猫爬架</span>
+        <div class="tree-controls">
+          <button class="tree-arrow" id="treePrev" aria-label="向左浏览猫爬架">‹</button>
+          <button class="tree-arrow" id="treeNext" aria-label="向右浏览猫爬架">›</button>
+        </div>
+      </div>
+      <div class="tree-slider" id="treeSlider" role="slider" tabindex="0"
+           aria-label="控制猫爬架横向位置" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="slider-rail" aria-hidden="true"></div>
+        <div class="slider-fill" id="sliderFill" aria-hidden="true"></div>
+        <div class="slider-handle" id="sliderHandle" aria-hidden="true">
+          <span class="slider-cat">🐈</span>
+        </div>
+        <span class="slider-end slider-start">起点</span>
+        <span class="slider-end slider-finish">终点</span>
+      </div>
     </div>
 
-    <!-- 02 逗猫棒 · 技能 -->
-    <div class="level right" id="level-skills">
-      <div class="perch"></div>
-      <button class="toy-item feather-toy" data-view="skills" aria-label="逗猫棒 - 技能">
-        <span class="string"></span>
-        <span class="wand"><i class="handle"></i><i class="cord"></i><i class="feather f1"></i><i class="feather f2"></i><i class="feather f3"></i><i class="bell"></i></span>
-        <span class="toy-tag"><b>02</b> 逗猫棒 <small>SKILLS · 技能</small></span>
-      </button>
-    </div>
+    <div class="tree-viewport" id="treeViewport">
+      <div class="tree-track">
 
-    <!-- 03 毛线球 · 关于我 -->
-    <div class="level left" id="level-about">
-      <div class="perch"></div>
-      <button class="toy-item yarn-toy" data-view="about" aria-label="毛线球 - 关于我">
-        <span class="string"></span>
-        <span class="yarn-ball"><i class="yarn-stripe s1"></i><i class="yarn-stripe s2"></i><i class="yarn-stripe s3"></i><i class="yarn-tail"></i></span>
-        <span class="toy-tag"><b>03</b> 毛线球 <small>ABOUT ME · 关于我</small></span>
-      </button>
-    </div>
+        <!-- 01 小鱼干 · 作品（坐在架子上） -->
+        <div class="level top" id="level-works">
+          <div class="perch"></div>
+          <button class="toy-item fish-toy" data-view="works" aria-label="小鱼干 - 作品">
+            <span class="fish"><i class="fish-eye"></i><i class="fish-line l1"></i><i class="fish-line l2"></i><i class="fish-tail"></i></span>
+            <span class="toy-tag"><b>01</b> 小鱼干 <small>WORKS · 作品</small></span>
+          </button>
+        </div>
 
-    <!-- 04 猫薄荷老鼠 · 履历 -->
-    <div class="level right" id="level-cv">
-      <div class="perch"></div>
-      <button class="toy-item mouse-toy" data-view="cv" aria-label="猫薄荷老鼠 - 履历">
-        <span class="string"></span>
-        <span class="mouse"><i class="ear e1"></i><i class="ear e2"></i><i class="eye"></i><i class="nose"></i><i class="tail"></i><i class="leaf"></i></span>
-        <span class="toy-tag"><b>04</b> 猫薄荷老鼠 <small>CV · 履历</small></span>
-      </button>
-    </div>
+        <!-- 02 逗猫棒 · 技能（挂在架子下） -->
+        <div class="level hang" id="level-skills">
+          <div class="perch"></div>
+          <button class="toy-item feather-toy" data-view="skills" aria-label="逗猫棒 - 技能">
+            <span class="string"></span>
+            <span class="wand"><i class="handle"></i><i class="cord"></i><i class="feather f1"></i><i class="feather f2"></i><i class="feather f3"></i><i class="bell"></i></span>
+            <span class="toy-tag"><b>02</b> 逗猫棒 <small>SKILLS · 技能</small></span>
+          </button>
+        </div>
 
-    <!-- 05 纸箱 · 联系 -->
-    <div class="level left last" id="level-contact">
-      <div class="perch wide"></div>
-      <button class="toy-item box-toy" data-view="contact" aria-label="纸箱 - 联系">
-        <span class="cardboard-box"><i class="flap f1"></i><i class="flap f2"></i><i class="hole"></i><i class="paw-print">🐾</i><i class="box-cat-peek">🐱</i></span>
-        <span class="toy-tag"><b>05</b> 纸箱 <small>CONTACT · 联系</small></span>
-      </button>
-    </div>
+        <!-- 03 毛线球 · 个人简介（坐在架子上） -->
+        <div class="level top" id="level-about">
+          <div class="perch"></div>
+          <button class="toy-item yarn-toy" data-view="about" aria-label="毛线球 - 个人简介">
+            <span class="yarn-ball"><i class="yarn-stripe s1"></i><i class="yarn-stripe s2"></i><i class="yarn-stripe s3"></i><i class="yarn-tail"></i></span>
+            <span class="toy-tag"><b>03</b> 毛线球 <small>ABOUT ME · 个人简介</small></span>
+          </button>
+        </div>
 
+        <!-- 04 猫薄荷老鼠 · 履历（挂在架子下） -->
+        <div class="level hang" id="level-cv">
+          <div class="perch"></div>
+          <button class="toy-item mouse-toy" data-view="cv" aria-label="猫薄荷老鼠 - 履历">
+            <span class="string"></span>
+            <span class="mouse"><i class="ear e1"></i><i class="ear e2"></i><i class="eye"></i><i class="nose"></i><i class="tail"></i><i class="leaf"></i></span>
+            <span class="toy-tag"><b>04</b> 猫薄荷老鼠 <small>CV · 履历</small></span>
+          </button>
+        </div>
+
+        <!-- 05 纸箱 · 联系（坐在架子上） -->
+        <div class="level top last" id="level-contact">
+          <div class="perch wide"></div>
+          <button class="toy-item box-toy" data-view="contact" aria-label="纸箱 - 联系">
+            <span class="cardboard-box"><i class="flap f1"></i><i class="flap f2"></i><i class="hole"></i><i class="paw-print">🐾</i><i class="box-cat-peek">🐱</i></span>
+            <span class="toy-tag"><b>05</b> 纸箱 <small>CONTACT · 联系</small></span>
+          </button>
+        </div>
+
+        <!-- 横向主柱：从左屏幕边缘伸出，贯穿整条轨道 -->
+        <div class="spine" aria-hidden="true">
+          <span class="spine-coil"></span>
+          <i class="spine-light" style="left:12%"></i>
+          <i class="spine-light" style="left:31%"></i>
+          <i class="spine-light" style="left:50%"></i>
+          <i class="spine-light" style="left:69%"></i>
+          <i class="spine-light" style="left:88%"></i>
+        </div>
+
+      </div>
+    </div>
   </section>
 
   <!-- 留言板 -->
@@ -216,7 +253,7 @@
 <div class="pop-overlay" id="popOverlay" hidden></div>
 <div class="pop-card" id="popCard" hidden>
   <div class="pop-head">
-    <div><span class="mini-label" id="popKicker">KEY TAG</span><h2 id="popTitle">关于我</h2></div>
+    <div><span class="mini-label" id="popKicker">KEY TAG</span><h2 id="popTitle">个人简介</h2></div>
     <button class="pop-close" id="popClose" aria-label="关闭">&times;</button>
   </div>
   <div class="pop-body">

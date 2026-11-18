@@ -250,7 +250,7 @@ const PROFILE_LABELS = {
   tagline: '一句话简介',
   location: '所在地',
   availability: '当前状态',
-  intro: '关于我（正文）',
+  intro: '个人简介（正文）',
   focus: '专注方向',
   skills: '技能工具',
   education: '教育背景',
@@ -1106,6 +1106,13 @@ document.getElementById('resetData').addEventListener('click', () => {
     });
     steps.forEach(s => s.classList.toggle('active', s.dataset.target === current));
     document.querySelectorAll('.mnd-link').forEach(l => l.classList.toggle('active', l.dataset.target === current));
+    document.querySelectorAll('.scratch-step').forEach(l => l.classList.toggle('active', l.dataset.target === current));
+
+    const tree = document.querySelector('.tree');
+    if (tree) {
+      const r = tree.getBoundingClientRect();
+      document.body.classList.toggle('in-tree', r.top < window.innerHeight * 0.35 && r.bottom > window.innerHeight * 0.35);
+    }
   }
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
@@ -1182,7 +1189,7 @@ document.getElementById('resetData').addEventListener('click', () => {
 const popCard = document.getElementById('popCard');
 const popOverlay = document.getElementById('popOverlay');
 const VIEW_INFO = {
-  about:   { kicker: 'YARN BALL · 毛线球', title: '关于我' },
+  about:   { kicker: 'YARN BALL · 毛线球', title: '个人简介' },
   works:   { kicker: 'DRIED FISH · 小鱼干', title: '作品' },
   skills:  { kicker: 'FEATHER WAND · 逗猫棒', title: '技能' },
   cv:      { kicker: 'CATNIP MOUSE · 猫薄荷老鼠', title: '履历' },
@@ -1685,6 +1692,213 @@ const GUESTBOOK_EMAIL = '3303076659@qq.com'; // ← 改成你想接收留言的�
 render();
 renderFeatured();
 
+/* ---------- 横向猫爬架：滑杆 / 拖动 / 箭头 / 键盘 / 导航 ---------- */
+(function initHorizontalTree() {
+  const view = document.getElementById('treeViewport');
+  const track = view ? view.querySelector('.tree-track') : null;
+  const levels = Array.from(document.querySelectorAll('.tree .level'));
+  if (!view || !track || !levels.length) return;
+
+  const body = document.body;
+  const lights = Array.from(track.querySelectorAll('.spine-light'));
+  const targets = levels.map(lv => lv.id).filter(Boolean);
+  const navLinks = Array.from(document.querySelectorAll('.scratch-step,.mnd-link,.paw-step'));
+  const slider = document.getElementById('treeSlider');
+  const fill = document.getElementById('sliderFill');
+  const handle = document.getElementById('sliderHandle');
+  let activeIndex = 0;
+  let ticking = false;
+  let maxScroll = 1;
+  let centers = [];
+  let lastScrollLeft = -1;
+  let movingTimer = 0;
+  let sliderWidth = 1;
+  let handlePad = 18;
+
+  body.classList.add('horizontal-tree');
+  body.dataset.treeIndex = '0';
+
+  function measure() {
+    maxScroll = Math.max(1, view.scrollWidth - view.clientWidth);
+    centers = levels.map(lv => lv.offsetLeft + lv.offsetWidth / 2);
+    const tw = track.offsetWidth || 1;
+    lights.forEach((light, i) => {
+      if (light && centers[i] != null) {
+        light.style.left = Math.max(1, Math.min(99, centers[i] / tw * 100)).toFixed(2) + '%';
+      }
+    });
+    if (slider) {
+      sliderWidth = slider.getBoundingClientRect().width || 1;
+      handlePad = handle ? handle.offsetWidth / 2 : 18;
+    }
+    request();
+  }
+
+  function flashMoving() {
+    if (!slider) return;
+    slider.classList.add('moving');
+    clearTimeout(movingTimer);
+    movingTimer = setTimeout(() => slider.classList.remove('moving'), 260);
+  }
+
+  function updateSlider() {
+    if (!slider) return;
+    const pct = Math.max(0, Math.min(1, view.scrollLeft / maxScroll)) * 100;
+    if (handle) handle.style.left = (handlePad + (sliderWidth - handlePad * 2) * pct / 100).toFixed(2) + 'px';
+    if (fill) fill.style.width = pct.toFixed(2) + '%';
+    slider.setAttribute('aria-valuenow', String(Math.round(pct)));
+  }
+
+  function markActive() {
+    body.dataset.treeIndex = String(activeIndex);
+    navLinks.forEach(link => {
+      const t = link.dataset.target;
+      if (t && targets.indexOf(t) !== -1) link.classList.toggle('active', t === targets[activeIndex]);
+    });
+    lights.forEach((l, i) => l.classList.toggle('lit', i <= activeIndex));
+  }
+
+  function update() {
+    ticking = false;
+    const sl = view.scrollLeft;
+    if (Math.abs(sl - lastScrollLeft) > 1) flashMoving();
+    lastScrollLeft = sl;
+    updateSlider();
+
+    const center = sl + view.clientWidth / 2;
+    let best = 0, bestDist = Infinity;
+    levels.forEach((lv, i) => {
+      const c = centers[i] != null ? centers[i] : lv.offsetLeft + lv.offsetWidth / 2;
+      const d = Math.abs(c - center);
+      if (d < bestDist) { bestDist = d; best = i; }
+      if (d < view.clientWidth * .78) lv.classList.add('in-view');
+    });
+    if (best !== activeIndex) activeIndex = best;
+    markActive();
+  }
+
+  function request() {
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }
+
+  view.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', measure);
+  window.addEventListener('load', measure);
+
+  /* 滑杆：真实驱动猫爬架左右移动，小猫跟着滑块一起跑 */
+  if (slider) {
+    let sliderDownX = 0;
+    let sliderMoved = false;
+    function ratioFromEvent(e) {
+      const r = slider.getBoundingClientRect();
+      const usable = Math.max(1, r.width - handlePad * 2);
+      return Math.max(0, Math.min(1, (e.clientX - r.left - handlePad) / usable));
+    }
+    function setFromRatio(ratio) {
+      view.scrollLeft = ratio * maxScroll;
+    }
+    slider.addEventListener('pointerdown', e => {
+      slider.classList.add('dragging');
+      sliderDownX = e.clientX;
+      sliderMoved = false;
+      try { slider.setPointerCapture(e.pointerId); } catch (_) {}
+      setFromRatio(ratioFromEvent(e));
+    });
+    slider.addEventListener('pointermove', e => {
+      if (!slider.classList.contains('dragging')) return;
+      if (Math.abs(e.clientX - sliderDownX) > 5) sliderMoved = true;
+      setFromRatio(ratioFromEvent(e));
+      flashMoving();
+    });
+    const endSlider = () => slider.classList.remove('dragging');
+    slider.addEventListener('pointerup', endSlider);
+    slider.addEventListener('pointercancel', endSlider);
+    slider.addEventListener('click', e => {
+      if (sliderMoved) return;
+      if (e.target.closest('.slider-handle')) {
+        view.scrollBy({ left: maxScroll * .08, behavior: 'smooth' });
+      }
+    });
+    slider.addEventListener('keydown', e => {
+      let delta = 0;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') delta = -1;
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') delta = 1;
+      else if (e.key === 'Home') { e.preventDefault(); view.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+      else if (e.key === 'End') { e.preventDefault(); view.scrollTo({ left: maxScroll, behavior: 'smooth' }); return; }
+      if (!delta) return;
+      e.preventDefault();
+      view.scrollBy({ left: delta * maxScroll * .08, behavior: 'smooth' });
+    });
+  }
+
+  /* 画面拖拽：只保留横向拖拽，页面上下滚动完全交还给浏览器 */
+  let dragging = false, startX = 0, startLeft = 0, moved = false;
+  view.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' || e.target.closest('.toy-item,.tree-arrow')) return;
+    dragging = true; moved = false;
+    startX = e.clientX; startLeft = view.scrollLeft;
+    try { view.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  view.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 4) moved = true;
+    view.scrollLeft = startLeft - dx;
+  });
+  const endDrag = () => { dragging = false; };
+  view.addEventListener('pointerup', endDrag);
+  view.addEventListener('pointercancel', endDrag);
+  view.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+  function step(dir) {
+    const first = levels[0];
+    const second = levels[1];
+    const amount = second
+      ? Math.abs(second.offsetLeft - first.offsetLeft)
+      : (first ? first.offsetWidth : 320) + 24;
+    view.scrollBy({ left: dir * amount, behavior: 'smooth' });
+  }
+  const prev = document.getElementById('treePrev');
+  const next = document.getElementById('treeNext');
+  if (prev) prev.addEventListener('click', () => step(-1));
+  if (next) next.addEventListener('click', () => step(1));
+
+  document.addEventListener('keydown', e => {
+    if (!body.classList.contains('in-tree')) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (/INPUT|TEXTAREA|SELECT/.test(tag) || (e.target && e.target.isContentEditable)) return;
+    if (e.target.closest('.voxel-stage,.pop-card,.modal,.lightbox,.detail-card,.edit-panel,.tree-slider')) return;
+    let dir = 0;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') dir = -1;
+    else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') dir = 1;
+    if (!dir) return;
+    e.preventDefault();
+    step(dir);
+  });
+
+  navLinks.forEach(link => {
+    const t = link.dataset.target;
+    if (!t || targets.indexOf(t) === -1) return;
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const lv = document.getElementById(t);
+      const tree = document.querySelector('.tree');
+      if (!lv) return;
+      if (tree) tree.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        view.scrollTo({
+          left: Math.max(0, lv.offsetLeft - (view.clientWidth - lv.offsetWidth) / 2),
+          behavior: 'smooth'
+        });
+      }, 280);
+    });
+  });
+
+  measure();
+  update();
+})();
+
 /* ---------- 滚动叙事增强：只读取滚动状态，不改原有锚点与交互 ---------- */
 (function initScrollNarrative() {
   const root = document.documentElement;
@@ -1694,7 +1908,7 @@ renderFeatured();
   const lights = Array.from(document.querySelectorAll('.spine-light'));
   const footer = document.querySelector('.site-footer');
   const chapters = [
-    '02 / WORKS · 作品', '03 / SKILLS · 技能', '04 / ABOUT · 关于我',
+    '02 / WORKS · 作品', '03 / SKILLS · 技能', '04 / ABOUT · 个人简介',
     '05 / CV · 履历', '06 / CONTACT · 联系'
   ];
   let ticking = false;
@@ -1711,12 +1925,16 @@ renderFeatured();
     }
 
     let active = -1;
-    levels.forEach((lv, i) => {
-      const r = lv.getBoundingClientRect();
-      const dist = Math.max(-1, Math.min(1, (r.top + r.height / 2 - vh / 2) / vh));
-      if (wide) lv.style.setProperty('--toy-y', (dist * -18).toFixed(1) + 'px');
-      if (r.top < vh * .55) active = i;
-    });
+    if (body.classList.contains('horizontal-tree')) {
+      active = Math.max(0, Math.min(levels.length - 1, parseInt(body.dataset.treeIndex || '0', 10) || 0));
+    } else {
+      levels.forEach((lv, i) => {
+        const r = lv.getBoundingClientRect();
+        const dist = Math.max(-1, Math.min(1, (r.top + r.height / 2 - vh / 2) / vh));
+        if (wide) lv.style.setProperty('--toy-y', (dist * -18).toFixed(1) + 'px');
+        if (r.top < vh * .55) active = i;
+      });
+    }
 
     if (y > 60 && active >= 0) body.dataset.chapter = chapters[active];
     else body.removeAttribute('data-chapter');
