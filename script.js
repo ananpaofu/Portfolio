@@ -5,13 +5,12 @@ const NAME_MIGRATION_KEY = 'my_portfolio_name_migration_v1';
 const FORMAL_REDESIGN_KEY = 'my_portfolio_formal_redesign_v1';
 const CREATOR_KEY = 'my_portfolio_creator_v1';
 const THEME_KEY = 'my_portfolio_theme_v1';
-const GUESTBOOK_KEY = 'my_portfolio_guestbook_v1';
 const CREATOR_PASSWORD = 'paofu2026';
 
 const DEFAULT_DATA = {
   profile: {
     eyebrow: '视觉设计 · 交互可视化 · AIGC 创作',
-    name: '泡芙',
+    name: '易千惠',
     tagline: '用设计讲述故事，让文化被看见。',
     location: '湖北 · 武汉 / 宜昌',
     availability: '可接受合作 / 实习机会',
@@ -348,7 +347,7 @@ function loadData() {
 
   try {
     if (!localStorage.getItem(NAME_MIGRATION_KEY)) {
-      if (loaded.profile.name === '易千惠') loaded.profile.name = '泡芙';
+      if (loaded.profile.name === '泡芙' || loaded.profile.name === '易千惠') loaded.profile.name = '易千惠';
       localStorage.setItem(NAME_MIGRATION_KEY, '1');
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
     }
@@ -532,7 +531,8 @@ function renderHero() {
   if (!heroEls.length) {
     stage.innerHTML = [0, 1, 2].map(k =>
       '<figure class="hero-frame pos-' + ['left', 'center', 'right'][k] + '" data-slot="' + k + '">' +
-      '<div class="hero-art"><img alt=""></div><figcaption></figcaption></figure>'
+      '<span class="hero-edge hero-edge-r"></span><span class="hero-edge hero-edge-b"></span>' +
+      '<div class="hero-front"><div class="hero-art"><img alt=""></div><figcaption></figcaption></div></figure>'
     ).join('') + '<div class="hero-dots" id="heroDots"></div>';
     heroEls = Array.from(stage.querySelectorAll('.hero-frame'));
     stage.addEventListener('click', e => {
@@ -968,7 +968,7 @@ function closeModal() {
 
 (function initScrollUI() {
   const progress = document.getElementById('scrollProgress');
-  const sections = ['home', 'works', 'journey', 'about', 'contact', 'guestbook'];
+  const sections = ['home', 'works', 'journey', 'about', 'contact'];
   const links = Array.from(document.querySelectorAll('.nav a'));
   let ticking = false;
 
@@ -1034,66 +1034,6 @@ function closeModal() {
     if (!dir) return;
     e.preventDefault();
     step(dir);
-  });
-})();
-
-/* ---------- 留言板 ---------- */
-(function initGuestbook() {
-  const form = document.getElementById('gbForm');
-  const list = document.getElementById('gbList');
-  const nameEl = document.getElementById('gbName');
-  const textEl = document.getElementById('gbText');
-  const counter = document.getElementById('gbCount');
-  if (!form || !list || !textEl) return;
-
-  let msgs = [];
-  try { msgs = JSON.parse(localStorage.getItem(GUESTBOOK_KEY)) || []; } catch (_) { msgs = []; }
-  if (!Array.isArray(msgs)) msgs = [];
-
-  function save() { try { localStorage.setItem(GUESTBOOK_KEY, JSON.stringify(msgs)); } catch (_) {} }
-  function render() {
-    if (!msgs.length) {
-      list.innerHTML = '<p class="gb-empty">还没有留言，来当第一个吧。</p>';
-      return;
-    }
-    list.innerHTML = msgs.map((m, i) =>
-      '<div class="gb-item"><div class="gb-who">' + escapeHtml(m.name || '匿名访客') + ' 🐾</div>' +
-      '<p class="gb-text">' + escapeHtml(m.text || '') + '</p>' +
-      '<time class="gb-time">' + escapeHtml(m.time || '') + '</time>' +
-      '<button class="gb-del" data-i="' + i + '" title="删除这条" aria-label="删除这条">✕</button></div>'
-    ).join('');
-    list.querySelectorAll('.gb-del').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (confirm('删除这条留言吗？')) {
-          msgs.splice(Number(btn.dataset.i), 1);
-          save(); render();
-        }
-      });
-    });
-  }
-  function updateCount() { if (counter) counter.textContent = (textEl.value || '').length + ' / 300'; }
-  textEl.addEventListener('input', updateCount);
-  updateCount();
-  render();
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const text = (textEl.value || '').trim();
-    if (!text) { toast('先写点什么吧'); return; }
-    const name = (nameEl.value || '').trim() || '匿名访客';
-    const now = new Date();
-    const time = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' +
-      String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' +
-      String(now.getMinutes()).padStart(2, '0');
-    const email = data.profile.email || '3303076659@qq.com';
-    const subject = encodeURIComponent('作品集新留言 · ' + name);
-    const body = encodeURIComponent('留言人：' + name + '\n时间：' + time + '\n\n' + text);
-
-    msgs.unshift({ name, text, time });
-    save(); render();
-    textEl.value = ''; updateCount();
-    toast('已打开邮件应用，点发送即可寄出');
-    window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
   });
 })();
 
