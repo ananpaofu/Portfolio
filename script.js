@@ -273,6 +273,30 @@ let editingIndex = -1;
 let revealObserver = null;
 let viewHideTimer = 0;
 let toastTimer = 0;
+const imageRatioCache = new Map();
+
+function preloadImageRatios() {
+  const urls = [...new Set(data.projects.map(p => (p.image || '').trim()).filter(Boolean))];
+  return Promise.all(urls.map(src => new Promise(resolve => {
+    if (imageRatioCache.has(src)) { resolve(); return; }
+    const img = new Image();
+    img.onload = img.onerror = () => {
+      const ratio = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
+      imageRatioCache.set(src, ratio);
+      resolve();
+    };
+    img.src = src;
+  })));
+}
+
+function sizeClassFor(project) {
+  const src = (project && project.image || '').trim();
+  const r = imageRatioCache.get(src) || 1;
+  if (r < 0.62) return 'size-long';
+  if (r < 0.9) return 'size-portrait';
+  if (r > 1.45) return 'size-wide';
+  return 'size-square';
+}
 
 const lb = document.getElementById('lightbox');
 const popCard = document.getElementById('popCard');
@@ -443,10 +467,13 @@ function renderMainWorks() {
     const action = (p.link || '').trim()
       ? '<a class="frame-link" href="' + escapeAttr(p.link.trim()) + '" target="_blank" rel="noopener noreferrer" data-stoplb>打开项目 ↗</a>'
       : '<button class="frame-link" type="button" data-stoplb>' + (p.detail ? '阅读项目故事 ↗' : '查看高清图 ↗') + '</button>';
-    return '<article class="work-frame reveal" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
-      '<div class="frame-media">' + mediaMarkup(p, 'ph') + '</div>' +
-      '<div class="frame-info">' +
-        '<div class="frame-meta"><span>' + escapeHtml(p.category || '作品') + '</span><span>' + escapeHtml(p.year || '') + '</span></div>' +
+    const size = sizeClassFor(p);
+    const feature = i === 0 ? ' feature' : '';
+    const cover = size === 'size-long' ? ' is-cover' : '';
+    return '<article class="work-frame ' + size + feature + ' reveal" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
+      '<div class="frame-art"><div class="frame-mat"><div class="frame-media' + cover + '">' + mediaMarkup(p, 'ph') + '</div></div></div>' +
+      '<div class="frame-label">' +
+        '<div class="frame-meta"><span class="frame-no">NO.' + String(i + 1).padStart(2, '0') + '</span><span>' + escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span></div>' +
         '<h3 class="frame-title">' + escapeHtml(p.title || '未命名作品') + '</h3>' +
         '<p class="frame-desc">' + escapeHtml(p.desc || '') + '</p>' +
         (tags ? '<div class="frame-tags">' + tags + '</div>' : '') +
@@ -499,7 +526,7 @@ function renderProjects() {
       ? '<a class="work-open" href="' + escapeAttr(p.link.trim()) + '" target="_blank" rel="noopener noreferrer" data-stoplb>查看项目 ↗</a>'
       : '<button class="work-open" type="button" data-stoplb>' + (p.detail ? '项目详情 ↗' : '高清图 ↗') + '</button>';
     return '<article class="work-item" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
-      '<div class="work-media">' + mediaMarkup(p, 'work-placeholder') + '</div>' +
+      '<div class="work-media' + (sizeClassFor(p) === 'size-long' ? ' is-cover' : '') + '">' + mediaMarkup(p, 'work-placeholder') + '</div>' +
       '<div class="work-body">' +
         '<h3 class="work-title">' + escapeHtml(p.title || '未命名作品') + '</h3>' +
         '<span class="work-cat">' + escapeHtml(p.category || '其他') + ' · ' + escapeHtml(p.year || '') + '</span>' +
@@ -1217,4 +1244,4 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- 启动 ---------- */
-render();
+preloadImageRatios().finally(render);
