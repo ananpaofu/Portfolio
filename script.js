@@ -279,6 +279,8 @@ const FRAME_STYLES = ['style-gold', 'style-paper', 'style-plaster', 'style-wood'
 const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
 let heroIndex = 0;
 let heroEls = [];
+let heroLastMoved = false;
+let heroSpin = 0;
 
 function preloadImageRatios() {
   const urls = [...new Set(data.projects.map(p => (p.image || '').trim()).filter(Boolean))];
@@ -502,12 +504,12 @@ function renderMainWorks() {
     const frameStyle = styleFor(p, i);
     const cover = imageInfo(p).ratio < 0.62 ? ' is-cover' : '';
     const dims = frameSizeFor(p);
-    const rots = [-1.4, 0.9, -0.7, 1.3, -1.1, 0.6];
-    const tys = [0, 12, -8, 10, -5, 8];
-    const noteRots = [-1.2, .9, -.7, 1.1, -.9, .8];
+    const rots = [-0.6, 0.5, -0.4, 0.6, -0.5, 0.4];
+    const tys = [0, 6, -5, 5, -3, 4];
+    const noteRots = [-0.8, .6, -.5, .8, -.6, .5];
     const scatters = [
-      { x: -130, y: -70, r: -9 }, { x: 120, y: 60, r: 8 }, { x: -90, y: 90, r: -6 },
-      { x: 110, y: -80, r: 7 }, { x: -150, y: 40, r: -5 }, { x: 90, y: -60, r: 6 }
+      { x: -70, y: -40, r: -6 }, { x: 70, y: 36, r: 5 }, { x: -55, y: 48, r: -4 },
+      { x: 62, y: -44, r: 5 }, { x: -80, y: 24, r: -4 }, { x: 54, y: -34, r: 4 }
     ];
     const rot = rots[i % rots.length];
     const ty = tys[i % tys.length];
@@ -553,24 +555,68 @@ function renderHero() {
   if (!stage) return;
   if (!heroEls.length) {
     stage.innerHTML = '<figure class="hero-frame">' +
-      '<span class="hero-stand"></span><span class="hero-edge hero-edge-l"></span>' +
-      '<span class="hero-edge hero-edge-t"></span><span class="hero-edge hero-edge-b"></span>' +
-      '<div class="hero-front"><div class="hero-art"><img alt=""></div><figcaption></figcaption></div></figure>' +
-      '<div class="hero-dots" id="heroDots"></div>';
+      '<div class="hero-3d">' +
+        '<div class="face face-back"></div><div class="face face-left"></div><div class="face face-right"></div>' +
+        '<div class="face face-top"></div><div class="face face-bottom"></div>' +
+        '<div class="face face-front"><div class="hero-art"><img alt=""></div><figcaption></figcaption></div>' +
+      '</div></figure>' + '<div class="hero-dots" id="heroDots"></div>';
     heroEls = Array.from(stage.querySelectorAll('.hero-frame'));
     stage.addEventListener('click', e => {
       const dot = e.target.closest('.hero-dot');
       if (dot) { heroIndex = Number(dot.dataset.i); renderHero(); return; }
       const fig = e.target.closest('.hero-frame');
+      if (heroLastMoved) { heroLastMoved = false; return; }
       if (fig && fig._project) openProject([fig._project], 0);
     });
+
+    const frame = heroEls[0];
+    const tilt = { x: 6, y: -18 };
+    let drag = null;
+    let gliding = false;
+
+    function glide() {
+      heroSpin *= .94;
+      if (Math.abs(heroSpin) < .05) { gliding = false; return; }
+      tilt.y += heroSpin;
+      frame.style.setProperty('--ry', tilt.y.toFixed(2) + 'deg');
+      requestAnimationFrame(glide);
+    }
+
+    frame.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      drag = { sx: e.clientX, sy: e.clientY, rx: tilt.x, ry: tilt.y, moved: false };
+      heroSpin = 0;
+      frame.classList.add('dragging');
+    });
+    frame.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const dx = e.clientX - drag.sx;
+      const dy = e.clientY - drag.sy;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.moved = true;
+      heroSpin = dx * .22;
+      tilt.y = drag.ry + dx * .55;
+      tilt.x = Math.max(-42, Math.min(42, drag.rx - dy * .32));
+      frame.style.setProperty('--rx', tilt.x.toFixed(2) + 'deg');
+      frame.style.setProperty('--ry', tilt.y.toFixed(2) + 'deg');
+    });
+    const endDrag = () => {
+      if (!drag) return;
+      heroLastMoved = drag.moved;
+      drag = null;
+      frame.classList.remove('dragging');
+      if (!gliding && Math.abs(heroSpin) > .05) { gliding = true; glide(); }
+      setTimeout(() => { heroLastMoved = false; }, 120);
+    };
+    frame.addEventListener('pointerup', endDrag);
+    frame.addEventListener('pointercancel', endDrag);
   }
   const id = HERO_IDS[heroIndex % HERO_IDS.length];
   const p = data.projects.find(item => item.id === id) || data.projects[0];
   if (!p) return;
   heroEls.forEach(el => {
     el._project = p;
-    el.className = 'hero-frame ' + styleFor(p, 0) + ' ' + (imageInfo(p).ratio < 0.9 ? 'is-tall' : '');
+    el.className = 'hero-frame ' + styleFor(p, 0) + ' ' + (imageInfo(p).ratio < 0.9 ? 'is-tall' : '') +
+      (el.classList.contains('dragging') ? ' dragging' : '');
     const img = el.querySelector('img');
     const src = (p.image || '').trim();
     if (img.getAttribute('src') !== src) img.src = src;
@@ -677,15 +723,19 @@ function render() {
 function observeReveals() {
   const items = document.querySelectorAll('.reveal:not(.visible)');
   if (!('IntersectionObserver' in window)) {
-    items.forEach(el => el.classList.add('visible'));
+    items.forEach(el => {
+      el.classList.add('visible');
+      ['--assx', '--assy', '--assr', '--asss'].forEach(v => el.style.removeProperty(v));
+    });
     return;
   }
   if (revealObserver) revealObserver.disconnect();
   revealObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
         const el = entry.target;
+        el.classList.add('visible');
+        ['--assx', '--assy', '--assr', '--asss'].forEach(v => el.style.removeProperty(v));
         setTimeout(() => { el.style.transitionDelay = ''; }, 1100);
         revealObserver.unobserve(el);
       }
