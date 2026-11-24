@@ -320,6 +320,16 @@ function styleFor(project, i) {
   return FRAME_STYLES[(i + String(project.category || '').length) % FRAME_STYLES.length];
 }
 
+function frameSizeFor(project) {
+  const m = imageInfo(project);
+  const r = m.ratio || 1;
+  if (r < 0.62) return { w: 220, ar: 0.72 };
+  if (r < 0.92) return { w: 250, ar: Math.max(0.66, r) };
+  if (r > 1.6) return { w: 380, ar: Math.min(1.9, r) };
+  if (r > 1.22) return { w: 330, ar: r };
+  return { w: 280, ar: r };
+}
+
 const lb = document.getElementById('lightbox');
 const popCard = document.getElementById('popCard');
 const popOverlay = document.getElementById('popOverlay');
@@ -489,11 +499,12 @@ function renderMainWorks() {
     const action = (p.link || '').trim()
       ? '<a class="frame-link" href="' + escapeAttr(p.link.trim()) + '" target="_blank" rel="noopener noreferrer" data-stoplb>打开项目 ↗</a>'
       : '<button class="frame-link" type="button" data-stoplb>' + (p.detail ? '阅读项目故事 ↗' : '查看高清图 ↗') + '</button>';
-    const size = layoutClassFor(p, i);
     const frameStyle = styleFor(p, i);
     const cover = imageInfo(p).ratio < 0.62 ? ' is-cover' : '';
+    const dims = frameSizeFor(p);
     const rots = [-1.4, 0.9, -0.7, 1.3, -1.1, 0.6];
-    const tys = [0, 18, -10, 14, -6, 10];
+    const tys = [0, 12, -8, 10, -5, 8];
+    const noteRots = [-1.2, .9, -.7, 1.1, -.9, .8];
     const scatters = [
       { x: -130, y: -70, r: -9 }, { x: 120, y: 60, r: 8 }, { x: -90, y: 90, r: -6 },
       { x: 110, y: -80, r: 7 }, { x: -150, y: 40, r: -5 }, { x: 90, y: -60, r: 6 }
@@ -501,15 +512,17 @@ function renderMainWorks() {
     const rot = rots[i % rots.length];
     const ty = tys[i % tys.length];
     const sc = scatters[i % scatters.length];
-    return '<article class="work-frame ' + size + ' ' + frameStyle + ' reveal" style="--rot:' + rot + 'deg;--ty:' + ty + 'px;--assx:' + sc.x + 'px;--assy:' + sc.y + 'px;--assr:' + sc.r + 'deg;--asss:.88" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
-      '<div class="frame-art"><div class="frame-mat"><div class="frame-media' + cover + '">' + mediaMarkup(p, 'ph') + '</div></div></div>' +
-      '<div class="frame-label">' +
+    return '<article class="work-frame ' + frameStyle + ' reveal" style="--ar:' + dims.ar + ';--fwpx:' + dims.w +
+      'px;--rot:' + rot + 'deg;--ty:' + ty + 'px;--noter:' + noteRots[i % noteRots.length] +
+      'deg;--assx:' + sc.x + 'px;--assy:' + sc.y + 'px;--assr:' + sc.r + 'deg;--asss:.88" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
+      '<div class="frame-object ' + frameStyle + '"><div class="frame-mat"><div class="frame-media' + cover + '">' + mediaMarkup(p, 'ph') + '</div></div></div>' +
+      '<aside class="frame-note">' +
         '<div class="frame-meta"><span class="frame-no">NO.' + String(i + 1).padStart(2, '0') + '</span><span>' + escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span></div>' +
         '<h3 class="frame-title">' + escapeHtml(p.title || '未命名作品') + '</h3>' +
         '<p class="frame-desc">' + escapeHtml(p.desc || '') + '</p>' +
         (tags ? '<div class="frame-tags">' + tags + '</div>' : '') +
         action +
-      '</div>' +
+      '</aside>' +
     '</article>';
   }).join('');
 
@@ -518,7 +531,7 @@ function renderMainWorks() {
     img.style.setProperty('--delay', Math.min(i * 0.07, 1.2) + 's');
   });
   grid.querySelectorAll('.work-frame').forEach(card => {
-    const open = () => openWithFlight(mainGallery, Number(card.dataset.index), card);
+    const open = () => openWithFlight(mainGallery, Number(card.dataset.index), card.querySelector('.frame-object') || card);
     card.addEventListener('click', e => { if (!e.target.closest('[data-stoplb]')) open(); });
     card.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
@@ -539,11 +552,11 @@ function renderHero() {
   const stage = document.getElementById('heroStage');
   if (!stage) return;
   if (!heroEls.length) {
-    stage.innerHTML = [0, 1, 2].map(k =>
-      '<figure class="hero-frame pos-' + ['left', 'center', 'right'][k] + '" data-slot="' + k + '">' +
-      '<span class="hero-edge hero-edge-r"></span><span class="hero-edge hero-edge-b"></span>' +
-      '<div class="hero-front"><div class="hero-art"><img alt=""></div><figcaption></figcaption></div></figure>'
-    ).join('') + '<div class="hero-dots" id="heroDots"></div>';
+    stage.innerHTML = '<figure class="hero-frame">' +
+      '<span class="hero-stand"></span><span class="hero-edge hero-edge-l"></span>' +
+      '<span class="hero-edge hero-edge-t"></span><span class="hero-edge hero-edge-b"></span>' +
+      '<div class="hero-front"><div class="hero-art"><img alt=""></div><figcaption></figcaption></div></figure>' +
+      '<div class="hero-dots" id="heroDots"></div>';
     heroEls = Array.from(stage.querySelectorAll('.hero-frame'));
     stage.addEventListener('click', e => {
       const dot = e.target.closest('.hero-dot');
@@ -552,23 +565,16 @@ function renderHero() {
       if (fig && fig._project) openProject([fig._project], 0);
     });
   }
-  const picks = [0, 1, 2].map(k => {
-    const id = HERO_IDS[(heroIndex + k) % HERO_IDS.length];
-    return data.projects.find(p => p.id === id);
-  }).filter(Boolean);
-  while (picks.length < 3 && data.projects[0]) picks.push(data.projects[0]);
-  if (!picks.length) return;
-  const positions = ['left', 'center', 'right'];
-  heroEls.forEach((el, k) => {
-    const p = picks[k];
-    if (!p) { el.style.display = 'none'; return; }
-    el.style.display = '';
+  const id = HERO_IDS[heroIndex % HERO_IDS.length];
+  const p = data.projects.find(item => item.id === id) || data.projects[0];
+  if (!p) return;
+  heroEls.forEach(el => {
     el._project = p;
-    el.className = 'hero-frame pos-' + positions[k] + ' ' + styleFor(p, k) + ' ' + (imageInfo(p).ratio < 0.9 ? 'is-tall' : '');
+    el.className = 'hero-frame ' + styleFor(p, 0) + ' ' + (imageInfo(p).ratio < 0.9 ? 'is-tall' : '');
     const img = el.querySelector('img');
     const src = (p.image || '').trim();
     if (img.getAttribute('src') !== src) img.src = src;
-    img.style.setProperty('--delay', (k * 0.18) + 's');
+    img.style.setProperty('--delay', '0s');
     img.alt = p.title || '作品';
     el.querySelector('figcaption').innerHTML = '<b>' + escapeHtml(p.title || '未命名作品') + '</b><span>' +
       escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span>';
@@ -1072,22 +1078,19 @@ function closeModal() {
 
   grid.addEventListener('pointermove', e => {
     if (e.pointerType === 'touch') return;
-    const rect = grid.getBoundingClientRect();
-    grid.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
-    grid.style.setProperty('--my', (e.clientY - rect.top) + 'px');
-    grid.classList.add('spot-on');
     lastEvent = { x: e.clientX, y: e.clientY };
 
     const card = e.target.closest('.work-frame');
-    if (card) {
-      const r = card.getBoundingClientRect();
+    const obj = card && card.querySelector('.frame-object');
+    if (obj) {
+      const r = obj.getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - .5;
       const ny = (e.clientY - r.top) / r.height - .5;
-      card.style.setProperty('--rx', (-ny * 5).toFixed(2) + 'deg');
-      card.style.setProperty('--ry', (nx * 6).toFixed(2) + 'deg');
-      card.style.setProperty('--shx', (nx * 10).toFixed(1) + 'px');
-      card.style.setProperty('--shy', (16 + ny * 8).toFixed(1) + 'px');
-      const media = card.querySelector('.frame-media');
+      obj.style.setProperty('--rx', (-ny * 5).toFixed(2) + 'deg');
+      obj.style.setProperty('--ry', (nx * 6).toFixed(2) + 'deg');
+      obj.style.setProperty('--shx', (nx * 10).toFixed(1) + 'px');
+      obj.style.setProperty('--shy', (16 + ny * 8).toFixed(1) + 'px');
+      const media = obj.querySelector('.frame-media');
       if (media) {
         media.style.setProperty('--gx', (nx * 50 + 50).toFixed(1) + '%');
         media.style.setProperty('--gy', (ny * 50 + 50).toFixed(1) + '%');
@@ -1097,20 +1100,19 @@ function closeModal() {
     if (!raf) raf = requestAnimationFrame(() => {
       raf = 0;
       if (!lastEvent) return;
-      grid.querySelectorAll('.work-frame').forEach(c => {
-        const r = c.getBoundingClientRect();
+      grid.querySelectorAll('.frame-object').forEach(o => {
+        const r = o.getBoundingClientRect();
         const d = Math.hypot(lastEvent.x - (r.left + r.width / 2), lastEvent.y - (r.top + r.height / 2));
-        c.style.setProperty('--glow', Math.max(0, 1 - d / 460).toFixed(3));
+        o.style.setProperty('--glow', Math.max(0, 1 - d / 420).toFixed(3));
       });
     });
   }, { passive: true });
 
   grid.addEventListener('pointerleave', () => {
-    grid.classList.remove('spot-on');
     lastEvent = null;
-    grid.querySelectorAll('.work-frame').forEach(c => {
-      ['--rx', '--ry', '--shx', '--shy', '--gx', '--gy', '--glow'].forEach(v => c.style.removeProperty(v));
-      const media = c.querySelector('.frame-media');
+    grid.querySelectorAll('.frame-object').forEach(o => {
+      ['--rx', '--ry', '--shx', '--shy', '--glow'].forEach(v => o.style.removeProperty(v));
+      const media = o.querySelector('.frame-media');
       if (media) ['--gx', '--gy'].forEach(v => media.style.removeProperty(v));
     });
   });
