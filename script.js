@@ -274,6 +274,10 @@ let revealObserver = null;
 let viewHideTimer = 0;
 let toastTimer = 0;
 const imageRatioCache = new Map();
+const FRAME_STYLES = ['style-gold', 'style-paper', 'style-plaster', 'style-wood', 'style-silver', 'style-green'];
+const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
+let heroIndex = 0;
+let heroEls = [];
 
 function preloadImageRatios() {
   const urls = [...new Set(data.projects.map(p => (p.image || '').trim()).filter(Boolean))];
@@ -281,21 +285,38 @@ function preloadImageRatios() {
     if (imageRatioCache.has(src)) { resolve(); return; }
     const img = new Image();
     img.onload = img.onerror = () => {
-      const ratio = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
-      imageRatioCache.set(src, ratio);
+      imageRatioCache.set(src, {
+        ratio: (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1,
+        w: img.naturalWidth || 1200,
+        h: img.naturalHeight || 900
+      });
       resolve();
     };
     img.src = src;
   })));
 }
 
-function sizeClassFor(project) {
+function imageInfo(project) {
   const src = (project && project.image || '').trim();
-  const r = imageRatioCache.get(src) || 1;
-  if (r < 0.62) return 'size-long';
-  if (r < 0.9) return 'size-portrait';
-  if (r > 1.45) return 'size-wide';
-  return 'size-square';
+  return imageRatioCache.get(src) || { ratio: 1, w: 1200, h: 900 };
+}
+
+function sizeClassFor(project) {
+  return imageInfo(project).ratio < 0.62 ? 'size-long' : 'size-medium';
+}
+
+function layoutClassFor(project, i) {
+  if (i === 0) return 'size-hero';
+  const m = imageInfo(project);
+  if (m.ratio < 0.62) return 'size-long';
+  if (m.h > 1700 || (m.ratio < 0.92 && m.h > 1200)) return 'size-tall';
+  if (m.w > 1700 && m.ratio > 1.25) return 'size-wide';
+  if (m.w < 1100 && m.h < 1000) return 'size-small';
+  return i % 4 === 1 ? 'size-tall' : 'size-medium';
+}
+
+function styleFor(project, i) {
+  return FRAME_STYLES[(i + String(project.category || '').length) % FRAME_STYLES.length];
 }
 
 const lb = document.getElementById('lightbox');
@@ -467,10 +488,14 @@ function renderMainWorks() {
     const action = (p.link || '').trim()
       ? '<a class="frame-link" href="' + escapeAttr(p.link.trim()) + '" target="_blank" rel="noopener noreferrer" data-stoplb>打开项目 ↗</a>'
       : '<button class="frame-link" type="button" data-stoplb>' + (p.detail ? '阅读项目故事 ↗' : '查看高清图 ↗') + '</button>';
-    const size = sizeClassFor(p);
-    const feature = i === 0 ? ' feature' : '';
-    const cover = size === 'size-long' ? ' is-cover' : '';
-    return '<article class="work-frame ' + size + feature + ' reveal" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
+    const size = layoutClassFor(p, i);
+    const frameStyle = styleFor(p, i);
+    const cover = imageInfo(p).ratio < 0.62 ? ' is-cover' : '';
+    const rots = [-1.4, 0.9, -0.7, 1.3, -1.1, 0.6];
+    const tys = [0, 18, -10, 14, -6, 10];
+    const rot = rots[i % rots.length];
+    const ty = tys[i % tys.length];
+    return '<article class="work-frame ' + size + ' ' + frameStyle + ' reveal" style="--rot:' + rot + 'deg;--ty:' + ty + 'px" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
       '<div class="frame-art"><div class="frame-mat"><div class="frame-media' + cover + '">' + mediaMarkup(p, 'ph') + '</div></div></div>' +
       '<div class="frame-label">' +
         '<div class="frame-meta"><span class="frame-no">NO.' + String(i + 1).padStart(2, '0') + '</span><span>' + escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span></div>' +
@@ -491,6 +516,81 @@ function renderMainWorks() {
     });
   });
   observeReveals();
+}
+
+const JOURNEY_STEPS = [
+  { num: '01', id: 'p14', title: '观察与拆解', text: '先把一个对象拆成可研究的问题：形象从哪里来、在不同媒介里怎么变、哪些信息值得被看见。', tags: ['资料梳理', '横向比对', '问题定义'] },
+  { num: '02', id: 'p9', title: '草图与生成', text: '用最快的方式试方向，再用 AIGC 反复迭代光影、材质和构图，保留偶然出现的好画面。', tags: ['草图探索', 'Midjourney', 'SD 迭代'] },
+  { num: '03', id: 'p15', title: '系统与规范', text: '把零散的尝试收成一套语言：色彩、比例、角色性格和应用场景都要能互相解释。', tags: ['角色设定', '视觉规范', '系列延展'] },
+  { num: '04', id: 'p10', title: '版式与叙事', text: '把信息按阅读节奏组织起来，让观众先看到什么、再看到什么，最后记住什么。', tags: ['信息层级', '网格', '叙事节奏'] },
+  { num: '05', id: 'p7', title: '落地与复盘', text: '从屏幕走到真实场景：展览物料、3D 展陈和印刷输出，再根据现场反馈回头修改。', tags: ['展览落地', '三维建模', '现场复盘'] }
+];
+
+function renderHero() {
+  const stage = document.getElementById('heroStage');
+  if (!stage) return;
+  if (!heroEls.length) {
+    stage.innerHTML = [0, 1, 2].map(k =>
+      '<figure class="hero-frame pos-' + ['left', 'center', 'right'][k] + '" data-slot="' + k + '">' +
+      '<div class="hero-art"><img alt=""></div><figcaption></figcaption></figure>'
+    ).join('') + '<div class="hero-dots" id="heroDots"></div>';
+    heroEls = Array.from(stage.querySelectorAll('.hero-frame'));
+    stage.addEventListener('click', e => {
+      const dot = e.target.closest('.hero-dot');
+      if (dot) { heroIndex = Number(dot.dataset.i); renderHero(); return; }
+      const fig = e.target.closest('.hero-frame');
+      if (fig && fig._project) openProject([fig._project], 0);
+    });
+  }
+  const picks = [0, 1, 2].map(k => {
+    const id = HERO_IDS[(heroIndex + k) % HERO_IDS.length];
+    return data.projects.find(p => p.id === id);
+  }).filter(Boolean);
+  while (picks.length < 3 && data.projects[0]) picks.push(data.projects[0]);
+  if (!picks.length) return;
+  const positions = ['left', 'center', 'right'];
+  heroEls.forEach((el, k) => {
+    const p = picks[k];
+    if (!p) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el._project = p;
+    el.className = 'hero-frame pos-' + positions[k] + ' ' + styleFor(p, k) + ' ' + (imageInfo(p).ratio < 0.9 ? 'is-tall' : '');
+    const img = el.querySelector('img');
+    const src = (p.image || '').trim();
+    if (img.getAttribute('src') !== src) img.src = src;
+    img.alt = p.title || '作品';
+    el.querySelector('figcaption').innerHTML = '<b>' + escapeHtml(p.title || '未命名作品') + '</b><span>' +
+      escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span>';
+  });
+  const dots = document.getElementById('heroDots');
+  if (dots) dots.innerHTML = HERO_IDS.map((_, i) =>
+    '<button type="button" class="hero-dot ' + (i === heroIndex ? 'active' : '') + '" data-i="' + i + '" aria-label="第' + (i + 1) + '张"></button>'
+  ).join('');
+}
+
+function renderJourney() {
+  const box = document.getElementById('journeyTrack');
+  if (!box) return;
+  box.innerHTML = JOURNEY_STEPS.map(s => {
+    const p = data.projects.find(x => x.id === s.id) || data.projects[0];
+    if (!p) return '';
+    const sec = p.detail && p.detail.sections && p.detail.sections[0];
+    const evidence = sec ? (sec.h + ' · ' + sec.p) : (p && p.desc || '');
+    return '<article class="journey-step">' +
+      '<div class="js-thumb"><img src="' + escapeAttr(p.image || '') + '" alt="' + escapeAttr(p.title || '') + '" loading="lazy"><span>' + escapeHtml(p.category || '作品') + '</span></div>' +
+      '<div class="js-body"><span class="js-num">' + s.num + '</span><h3>' + escapeHtml(s.title) + '</h3><p>' + escapeHtml(s.text) + '</p>' +
+      '<p class="js-evidence">' + escapeHtml(evidence) + '</p>' +
+      '<div class="js-tags">' + s.tags.map(t => '<span>' + escapeHtml(t) + '</span>').join('') + '</div>' +
+      '<button type="button" class="js-open" data-id="' + escapeAttr(p.id) + '">看这个作品 ↗</button></div></article>';
+  }).join('');
+  box.querySelectorAll('.js-open').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = data.projects.find(x => x.id === btn.dataset.id);
+      if (p) openProject([p], 0);
+    });
+  });
+  const stat = document.getElementById('statWorks');
+  if (stat) stat.textContent = String(data.projects.length).padStart(2, '0');
 }
 
 function renderFilters() {
@@ -550,7 +650,9 @@ function renderProjects() {
 function render() {
   renderProfile();
   renderSkills();
+  renderHero();
   renderMainWorks();
+  renderJourney();
   renderFilters();
   renderProjects();
 }
@@ -1245,3 +1347,7 @@ document.addEventListener('keydown', e => {
 
 /* ---------- 启动 ---------- */
 preloadImageRatios().finally(render);
+setInterval(() => {
+  heroIndex = (heroIndex + 1) % HERO_IDS.length;
+  renderHero();
+}, 4600);
