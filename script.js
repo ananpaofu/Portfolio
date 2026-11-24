@@ -272,6 +272,8 @@ let editingIndex = -1;
 let revealObserver = null;
 let viewHideTimer = 0;
 let toastTimer = 0;
+let lastOriginEl = null;
+let lastFlightProject = null;
 const imageRatioCache = new Map();
 const FRAME_STYLES = ['style-gold', 'style-paper', 'style-plaster', 'style-wood', 'style-silver', 'style-green'];
 const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
@@ -492,9 +494,14 @@ function renderMainWorks() {
     const cover = imageInfo(p).ratio < 0.62 ? ' is-cover' : '';
     const rots = [-1.4, 0.9, -0.7, 1.3, -1.1, 0.6];
     const tys = [0, 18, -10, 14, -6, 10];
+    const scatters = [
+      { x: -130, y: -70, r: -9 }, { x: 120, y: 60, r: 8 }, { x: -90, y: 90, r: -6 },
+      { x: 110, y: -80, r: 7 }, { x: -150, y: 40, r: -5 }, { x: 90, y: -60, r: 6 }
+    ];
     const rot = rots[i % rots.length];
     const ty = tys[i % tys.length];
-    return '<article class="work-frame ' + size + ' ' + frameStyle + ' reveal" style="--rot:' + rot + 'deg;--ty:' + ty + 'px" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
+    const sc = scatters[i % scatters.length];
+    return '<article class="work-frame ' + size + ' ' + frameStyle + ' reveal" style="--rot:' + rot + 'deg;--ty:' + ty + 'px;--assx:' + sc.x + 'px;--assy:' + sc.y + 'px;--assr:' + sc.r + 'deg;--asss:.88" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
       '<div class="frame-art"><div class="frame-mat"><div class="frame-media' + cover + '">' + mediaMarkup(p, 'ph') + '</div></div></div>' +
       '<div class="frame-label">' +
         '<div class="frame-meta"><span class="frame-no">NO.' + String(i + 1).padStart(2, '0') + '</span><span>' + escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span></div>' +
@@ -507,8 +514,11 @@ function renderMainWorks() {
   }).join('');
 
   bindImageFallbacks(grid);
+  grid.querySelectorAll('.frame-media img').forEach((img, i) => {
+    img.style.setProperty('--delay', Math.min(i * 0.07, 1.2) + 's');
+  });
   grid.querySelectorAll('.work-frame').forEach(card => {
-    const open = () => openProject(mainGallery, Number(card.dataset.index));
+    const open = () => openWithFlight(mainGallery, Number(card.dataset.index), card);
     card.addEventListener('click', e => { if (!e.target.closest('[data-stoplb]')) open(); });
     card.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
@@ -558,6 +568,7 @@ function renderHero() {
     const img = el.querySelector('img');
     const src = (p.image || '').trim();
     if (img.getAttribute('src') !== src) img.src = src;
+    img.style.setProperty('--delay', (k * 0.18) + 's');
     img.alt = p.title || '作品';
     el.querySelector('figcaption').innerHTML = '<b>' + escapeHtml(p.title || '未命名作品') + '</b><span>' +
       escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span>';
@@ -668,13 +679,95 @@ function observeReveals() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        revealObserver.unobserve(entry.target);
+        const el = entry.target;
+        setTimeout(() => { el.style.transitionDelay = ''; }, 1100);
+        revealObserver.unobserve(el);
       }
     });
   }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
   items.forEach((el, i) => {
     el.style.transitionDelay = Math.min(i % 3, 2) * 70 + 'ms';
     revealObserver.observe(el);
+  });
+}
+
+/* ---------- 取画—放画过渡 ---------- */
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function flightRect() {
+  const w = Math.min(860, window.innerWidth * .94);
+  const h = Math.min(window.innerHeight * .86, 700);
+  return { left: (window.innerWidth - w) / 2, top: (window.innerHeight - h) / 2, width: w, height: h };
+}
+
+function makeFlight(project, rect, styleClass) {
+  const fly = document.createElement('div');
+  fly.className = 'flight-frame ' + (styleClass || '');
+  const src = (project.image || '').trim();
+  const art = src
+    ? '<img src="' + escapeAttr(src) + '" alt="">'
+    : '<span style="font-family:var(--display);font-size:42px">' + escapeHtml(initialOf(project)) + '</span>';
+  fly.innerHTML = '<div class="flight-art">' + art + '</div><div class="flight-cap">' +
+    escapeHtml(project.title || '未命名作品') + '</div>';
+  fly.style.left = rect.left + 'px';
+  fly.style.top = rect.top + 'px';
+  fly.style.width = rect.width + 'px';
+  fly.style.height = rect.height + 'px';
+  document.body.appendChild(fly);
+  return fly;
+}
+
+function animateFlight(fly, from, to, done) {
+  const animation = fly.animate([
+    { left: from.left + 'px', top: from.top + 'px', width: from.width + 'px', height: from.height + 'px', opacity: 1 },
+    { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', opacity: 1 }
+  ], { duration: 560, easing: 'cubic-bezier(.22,.9,.28,1)' });
+  if (animation.finished && animation.finished.then) animation.finished.then(done, done);
+  else setTimeout(done, 560);
+}
+
+function openWithFlight(gallery, index, origin) {
+  const project = gallery[index];
+  if (!project) return;
+  if (!origin || prefersReducedMotion()) {
+    lastOriginEl = origin || null;
+    lastFlightProject = project;
+    openProject(gallery, index);
+    return;
+  }
+  const from = origin.getBoundingClientRect();
+  const matched = origin.className.match(/style-\w+/);
+  const fly = makeFlight(project, from, matched ? matched[0] : '');
+  origin.style.opacity = '0';
+  animateFlight(fly, from, flightRect(), () => {
+    fly.remove();
+    lastOriginEl = origin;
+    lastFlightProject = project;
+    openProject(gallery, index);
+  });
+}
+
+function flyBack(done) {
+  const origin = lastOriginEl;
+  const project = lastFlightProject;
+  if (!origin || !project || prefersReducedMotion()) {
+    if (origin) origin.style.opacity = '';
+    lastOriginEl = null;
+    lastFlightProject = null;
+    done();
+    return;
+  }
+  const from = flightRect();
+  const to = origin.getBoundingClientRect();
+  const fly = makeFlight(project, from, '');
+  animateFlight(fly, from, to, () => {
+    fly.remove();
+    origin.style.opacity = '';
+    lastOriginEl = null;
+    lastFlightProject = null;
+    done();
   });
 }
 
@@ -728,8 +821,9 @@ function openLightbox(index) {
 
 function closeLightbox() {
   if (!lb || lb.hidden) return;
-  lb.hidden = true;
-  syncBodyLock();
+  const finish = () => { lb.hidden = true; syncBodyLock(); };
+  if (lastOriginEl) flyBack(finish);
+  else finish();
 }
 
 function stepLightbox(step) {
@@ -784,13 +878,17 @@ function openDetail(project) {
 
 function closeDetail() {
   if (!detailCard || detailCard.hidden) return;
-  detailCard.classList.remove('open');
-  detailOverlay.classList.remove('show');
-  setTimeout(() => {
-    detailCard.hidden = true;
-    detailOverlay.hidden = true;
-    syncBodyLock();
-  }, 420);
+  const finish = () => {
+    detailCard.classList.remove('open');
+    detailOverlay.classList.remove('show');
+    setTimeout(() => {
+      detailCard.hidden = true;
+      detailOverlay.hidden = true;
+      syncBodyLock();
+    }, 420);
+  };
+  if (lastOriginEl) flyBack(finish);
+  else finish();
 }
 
 /* ---------- 中央视图 ---------- */
@@ -964,6 +1062,107 @@ function closeModal() {
     const y = (e.clientY / window.innerHeight - .5) * 9;
     eco.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
   }, { passive: true });
+})();
+
+(function initGalleryInteractions() {
+  const grid = document.getElementById('mainWorks');
+  if (!grid) return;
+  let raf = 0;
+  let lastEvent = null;
+
+  grid.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch') return;
+    const rect = grid.getBoundingClientRect();
+    grid.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+    grid.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+    grid.classList.add('spot-on');
+    lastEvent = { x: e.clientX, y: e.clientY };
+
+    const card = e.target.closest('.work-frame');
+    if (card) {
+      const r = card.getBoundingClientRect();
+      const nx = (e.clientX - r.left) / r.width - .5;
+      const ny = (e.clientY - r.top) / r.height - .5;
+      card.style.setProperty('--rx', (-ny * 5).toFixed(2) + 'deg');
+      card.style.setProperty('--ry', (nx * 6).toFixed(2) + 'deg');
+      card.style.setProperty('--shx', (nx * 10).toFixed(1) + 'px');
+      card.style.setProperty('--shy', (16 + ny * 8).toFixed(1) + 'px');
+      const media = card.querySelector('.frame-media');
+      if (media) {
+        media.style.setProperty('--gx', (nx * 50 + 50).toFixed(1) + '%');
+        media.style.setProperty('--gy', (ny * 50 + 50).toFixed(1) + '%');
+      }
+    }
+
+    if (!raf) raf = requestAnimationFrame(() => {
+      raf = 0;
+      if (!lastEvent) return;
+      grid.querySelectorAll('.work-frame').forEach(c => {
+        const r = c.getBoundingClientRect();
+        const d = Math.hypot(lastEvent.x - (r.left + r.width / 2), lastEvent.y - (r.top + r.height / 2));
+        c.style.setProperty('--glow', Math.max(0, 1 - d / 460).toFixed(3));
+      });
+    });
+  }, { passive: true });
+
+  grid.addEventListener('pointerleave', () => {
+    grid.classList.remove('spot-on');
+    lastEvent = null;
+    grid.querySelectorAll('.work-frame').forEach(c => {
+      ['--rx', '--ry', '--shx', '--shy', '--gx', '--gy', '--glow'].forEach(v => c.style.removeProperty(v));
+      const media = c.querySelector('.frame-media');
+      if (media) ['--gx', '--gy'].forEach(v => media.style.removeProperty(v));
+    });
+  });
+
+  let dragging = false, startX = 0, startY = 0, moved = false;
+  grid.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' || e.target.closest('a,button')) return;
+    dragging = true; moved = false;
+    startX = e.clientX; startY = e.clientY;
+    grid.classList.add('dragging');
+    grid.style.transition = 'none';
+  });
+  window.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    grid.style.setProperty('--dragx', Math.max(-90, Math.min(90, dx * .35)).toFixed(1) + 'px');
+    grid.style.setProperty('--dragy', Math.max(-60, Math.min(60, dy * .25)).toFixed(1) + 'px');
+  });
+  window.addEventListener('pointerup', () => {
+    if (!dragging) return;
+    dragging = false;
+    grid.classList.remove('dragging');
+    grid.style.transition = 'transform .68s cubic-bezier(.2,1.3,.35,1)';
+    grid.style.setProperty('--dragx', '0px');
+    grid.style.setProperty('--dragy', '0px');
+    setTimeout(() => { grid.style.transition = ''; moved = false; }, 720);
+  });
+  grid.addEventListener('click', e => {
+    if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; }
+  }, true);
+})();
+
+(function initCatInteractions() {
+  document.addEventListener('click', e => {
+    if (e.target.closest('button,a,input,textarea,[role="button"]')) return;
+    const existing = document.querySelectorAll('.click-cat');
+    if (existing.length > 5) existing[0].remove();
+    const cat = document.createElement('span');
+    cat.className = 'click-cat';
+    cat.textContent = Math.random() > .5 ? '🐾' : '🐈';
+    cat.style.left = e.clientX + 'px';
+    cat.style.top = e.clientY + 'px';
+    const night = document.body.classList.contains('night');
+    cat.style.setProperty('--sz', (night ? 58 : 44) + 'px');
+    cat.style.setProperty('--r', (Math.random() * 40 - 20).toFixed(0) + 'deg');
+    cat.style.setProperty('--dx', (Math.random() * 80 - 40).toFixed(0) + 'px');
+    cat.style.setProperty('--dur', '1.5s');
+    document.body.appendChild(cat);
+    setTimeout(() => cat.remove(), 1600);
+  });
 })();
 
 (function initScrollUI() {
