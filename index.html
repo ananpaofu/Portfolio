@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>猫爬架作品集 · CAT TREE PORTFOLIO</title>
+<title>泡芙 · 作品集 PORTFOLIO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&family=Ma+Shan+Zheng&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,246 +14,136 @@
 <button class="theme-fab music-fab" id="musicToggle" title="播放轻音乐" aria-label="播放轻音乐" aria-pressed="false"><span class="music-icon">♫</span></button>
 <button class="theme-fab" id="themeToggle" title="切换到夜晚" aria-label="切换昼夜主题"><span class="theme-icon">☾</span></button>
 <button class="edit-fab" id="navEdit" title="编辑作品集">编辑 ✎</button>
-<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+<div class="progress" id="scrollProgress" aria-hidden="true"></div>
 <div class="stars" id="stars" aria-hidden="true"></div>
 <div class="pixel-cat" id="pixelCat" aria-hidden="true"></div>
 
 <div class="world">
-
-  <!-- 背景生态层 -->
   <div class="eco-layer" id="ecoLayer" aria-hidden="true"></div>
 
-  <!-- 竖屏导航：点击顶部 CAT TREE 从左侧滑出 -->
-  <button class="mobile-nav-btn" id="mobileNavBtn" aria-label="打开导航" aria-expanded="false">🐾 CAT TREE <span class="mnb-caret">›</span></button>
-  <div class="mobile-nav-mask" id="mobileNavMask"></div>
-  <nav class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="移动端导航">
-    <div class="mnd-head"><span>🐾 CAT TREE</span><button class="mnd-close" id="mobileNavClose" aria-label="关闭导航">&times;</button></div>
-    <p class="mnd-tip">顺着猫爬架，跳到想去的玩具</p>
-    <a class="mnd-link" href="#home" data-target="home"><span class="mnd-num">01</span><span class="mnd-ico">🐾</span>首页</a>
-    <a class="mnd-link" href="#featured" data-target="featured"><span class="mnd-num">02</span><span class="mnd-ico">🐾</span>作品</a>
-    <a class="mnd-link" href="#level-skills" data-target="level-skills"><span class="mnd-num">03</span><span class="mnd-ico">🐾</span>技能</a>
-    <a class="mnd-link" href="#level-about" data-target="level-about"><span class="mnd-num">04</span><span class="mnd-ico">🐾</span>个人简介</a>
-    <a class="mnd-link" href="#level-cv" data-target="level-cv"><span class="mnd-num">05</span><span class="mnd-ico">🐾</span>履历</a>
-    <a class="mnd-link" href="#level-contact" data-target="level-contact"><span class="mnd-num">06</span><span class="mnd-ico">🐾</span>联系</a>
-  </nav>
+  <header class="site-header">
+    <a class="brand" href="#home">
+      <svg class="brand-mark" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 14V6l6 4c2.6-.8 5.4-.8 8 0l6-4v8c3 5 2 10-3 13-4.8 3-11.2 3-16 0C4 24 3 19 6 14Z"/>
+        <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/><circle cx="20" cy="18" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>泡芙 <small>PORTFOLIO</small></span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="#works">作品</a>
+      <a href="#journey">创作路径</a>
+      <a href="#about">个人简介</a>
+      <a href="#contact">联系</a>
+      <a href="#guestbook">留言</a>
+    </nav>
+  </header>
 
-  <!-- 爪印导航路标（进入猫爬架时转移到左侧磨爪板） -->
-  <nav class="paw-nav" id="pawNav" aria-label="页面导航">
-    <a class="paw-step" href="#home" data-target="home"><span class="paw-ico">🐾</span><span class="paw-label">首页</span></a>
-    <a class="paw-step" href="#featured" data-target="featured"><span class="paw-ico">🐾</span><span class="paw-label">作品</span></a>
-    <a class="paw-step" href="#level-skills" data-target="level-skills"><span class="paw-ico">🐾</span><span class="paw-label">技能</span></a>
-    <a class="paw-step" href="#level-about" data-target="level-about"><span class="paw-ico">🐾</span><span class="paw-label">个人简介</span></a>
-    <a class="paw-step" href="#level-cv" data-target="level-cv"><span class="paw-ico">🐾</span><span class="paw-label">履历</span></a>
-    <a class="paw-step" href="#level-contact" data-target="level-contact"><span class="paw-ico">🐾</span><span class="paw-label">联系</span></a>
-  </nav>
-
-  <!-- 猫爬架里的剑麻磨爪板导航（桌面端滚动到猫爬架时出现） -->
-  <nav class="scratch-nav" id="scratchNav" aria-label="猫爬架导航">
-    <div class="scratch-board">
-      <div class="scratch-links">
-        <a class="scratch-step" href="#home" data-target="home"><span>🐾</span>首页</a>
-        <a class="scratch-step" href="#featured" data-target="featured"><span>🐾</span>作品</a>
-        <a class="scratch-step" href="#level-skills" data-target="level-skills"><span>🐾</span>技能</a>
-        <a class="scratch-step" href="#level-about" data-target="level-about"><span>🐾</span>个人简介</a>
-        <a class="scratch-step" href="#level-cv" data-target="level-cv"><span>🐾</span>履历</a>
-        <a class="scratch-step" href="#level-contact" data-target="level-contact"><span>🐾</span>联系</a>
+  <main id="top">
+    <section class="hero" id="home">
+      <div class="hero-copy">
+        <span class="eyebrow">2026 · VISUAL DESIGN / INTERACTION / AIGC</span>
+        <h1>把想法<br><em>画成能看见的故事</em></h1>
+        <p class="lead">视觉设计、交互可视化与 AIGC 创作。从一张草图到一张能被记住的画面，我喜欢把过程也留在作品里。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#works">看作品 <span aria-hidden="true">↓</span></a>
+          <a class="btn ghost" href="#journey">创作路径</a>
+        </div>
+        <div class="hero-meta"><span>湖北美术学院 · 艺术与科技</span><span>可接受合作 / 实习</span></div>
       </div>
-    </div>
-  </nav>
-
-  <!-- 封面 -->
-  <section class="hero" id="home">
-    <div class="hero-copy">
-      <div class="hero-kicker">
-        <span class="hk-index">01</span>
-        <span class="hk-line"></span>
-        <span class="hk-text">2026 © CAT TREE PORTFOLIO</span>
+      <div class="hero-collage" aria-label="精选作品预览">
+        <figure class="frame frame-a"><img src="assets/qitian-0.jpg" alt="齐天流韵 · 孙悟空形象谱系" loading="lazy"><figcaption>信息可视化 · 2026</figcaption></figure>
+        <figure class="frame frame-b"><img src="assets/chill-0.jpg" alt="Chill More 护肤产品海报" loading="lazy"><figcaption>AIGC 海报 · 2026</figcaption></figure>
+        <figure class="frame frame-c"><img src="assets/poster-fluffy-planet.png" alt="绒绒星球 · 醒图 IP 海报" loading="lazy"><figcaption>IP 海报 · 2026</figcaption></figure>
       </div>
-      <h1 class="hero-title">个人<br>作品集</h1>
-      <div class="hero-id">
-        <div class="hero-name"><span data-profile-field="name">泡芙</span><span class="paw">🐾</span></div>
-        <p class="hero-focus" data-profile-field="focus">视觉设计 / 交互可视化 / AIGC 创作</p>
-      </div>
-      <div class="hero-rule"></div>
-      <div class="hero-guide">
-        <span class="guide-mark">↺</span>
-        <p class="hero-hint">拖动中间的方块猫转一圈，滚轮或 <b>＋ / －</b> 放大；<br>点右边图鉴还能换花色。顺着猫爬架往右，每块跳板都停着一只猫玩具。</p>
-      </div>
-      <div class="hero-index"><span><b>01</b> — 05</span><span>SCROLL <b>↓</b></span></div>
-    </div>
+    </section>
 
-    <div class="hero-perch" id="heroPerch">
-      <div class="voxel-hint" aria-hidden="true">↔ 拖动旋转 · 滚轮缩放</div>
-      <div class="voxel-stage" id="voxelStage">
-        <div class="voxel-cat" id="cat3d" role="img" tabindex="0" aria-label="我的世界风格方块猫：拖动旋转，滚轮或按钮缩放，双击复位"></div>
-        <span class="laser-dot" id="laserDot" aria-hidden="true"></span>
-        <div class="cat-bubble show" id="catBubble">摸摸我 🐾</div>
-      </div>
-      <div class="voxel-controls">
-        <button class="voxel-btn" id="catZoomOut" aria-label="缩小方块猫">−</button>
-        <button class="voxel-btn" id="catReset" aria-label="重置方块猫视角">⟲</button>
-        <button class="voxel-btn" id="catZoomIn" aria-label="放大方块猫">＋</button>
-        <button class="voxel-btn feed-btn" id="catFeed" aria-label="给猫喂小鱼干" title="给猫喂小鱼干">🐟 <span id="feedCount">0</span></button>
-      </div>
-    </div>
-
-    <aside class="cat-atlas" id="catAtlas" aria-label="猫咪图鉴">
-      <span class="atlas-title">CAT ATLAS / 猫咪图鉴</span>
-      <button class="atlas-item active" data-skin="red"><i class="swatch" style="--c1:#cf8243;--c2:#f1e2c2;--c3:#7fbf43"></i><span>红虎斑<small>橙白 · 绿眼</small></span></button>
-      <button class="atlas-item" data-skin="calico"><i class="swatch" style="--c1:#cf8243;--c2:#f7f4ec;--c3:#e0a83c"></i><span>花猫<small>三花 · 异瞳</small></span></button>
-      <button class="atlas-item" data-skin="siamese"><i class="swatch" style="--c1:#c3b7a4;--c2:#e6dccd;--c3:#3d8fd4"></i><span>暹罗猫<small>浅褐 · 蓝眼</small></span></button>
-      <button class="atlas-item" data-skin="ragdoll"><i class="swatch" style="--c1:#ded8ce;--c2:#f6f2ec;--c3:#4a9ad8"></i><span>布偶猫<small>白色 · 蓝眼</small></span></button>
-      <button class="atlas-item" data-skin="jellie"><i class="swatch" style="--c1:#8e8b87;--c2:#dedbd5;--c3:#9bb87a"></i><span>起司猫<small>灰白 · 灰绿眼</small></span></button>
-      <button class="atlas-item" data-skin="white"><i class="swatch" style="--c1:#f0efec;--c2:#ffffff;--c3:#7ec8d8"></i><span>白猫<small>通白 · 浅蓝眼</small></span></button>
-    </aside>
-
-    <div class="hero-strip">
-      <div><b>01</b><span>视觉设计</span></div>
-      <div><b>02</b><span>交互可视化</span></div>
-      <div><b>03</b><span>AIGC 创作</span></div>
-      <div><b>04</b><span>湖北 · 武汉</span></div>
-      <div class="strip-status"><i></i><span>可接受合作</span></div>
-    </div>
-    <span class="hero-note n1">MEOW!</span>
-    <span class="hero-note n2">🐟</span>
-    <span class="hero-note n3">PURRFECT</span>
-    <div class="hero-sparkles" id="sparkles" aria-hidden="true"></div>
-    <button class="hero-gateway" id="heroGateway" aria-label="进入猫爬架">
-      <span class="gateway-paw">🐾</span>
-      <span class="gateway-text">顺着猫爬架往右 <b>→</b></span>
-      <span class="gateway-sub">CLICK TO EXPLORE</span>
-    </button>
-  </section>
-
-  <!-- 精选作品横条 -->
-  <section class="featured-strip" id="featured" aria-label="精选作品">
-    <div class="featured-head">
-      <span class="mini-label">FEATURED WORKS · 精选作品</span>
-      <span class="featured-hint">滚轮 / 拖动可左右滑动 · 悬停暂停 →</span>
-    </div>
-    <div class="featured-track" id="featuredTrack"></div>
-  </section>
-
-  <!-- 横向猫爬架：从屏幕左侧伸出，玩具坐在架上 / 挂在架下 -->
-  <section class="tree" id="catTree">
-    <div class="tree-head">
-      <div class="tree-head-top">
-        <span class="mini-label">CAT TREE · 横向猫爬架</span>
-        <span class="tree-hint">拖动滑杆 / 拖动画面 / ← → 控制猫爬架</span>
-        <div class="tree-controls">
-          <button class="tree-arrow" id="treePrev" aria-label="向左浏览猫爬架">‹</button>
-          <button class="tree-arrow" id="treeNext" aria-label="向右浏览猫爬架">›</button>
+    <section class="works" id="works">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">SELECTED WORKS · 作品</span>
+          <h2>画框里的作品</h2>
+        </div>
+        <div class="section-side">
+          <p>每一幅都是完整作品。点开可以看详情与高清图，也可以用编辑面板更新内容。</p>
+          <button class="text-btn" id="openAllWorks">筛选 / 排序全部作品 <span aria-hidden="true">↗</span></button>
         </div>
       </div>
-      <div class="tree-slider" id="treeSlider" role="slider" tabindex="0"
-           aria-label="控制猫爬架横向位置" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <div class="slider-rail" aria-hidden="true"></div>
-        <div class="slider-fill" id="sliderFill" aria-hidden="true"></div>
-        <div class="slider-handle" id="sliderHandle" aria-hidden="true">
-          <span class="slider-cat">🐈</span>
+      <div class="works-grid" id="mainWorks"></div>
+    </section>
+
+    <section class="journey" id="journey">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">THE WAY I WORK · 创作路径</span>
+          <h2>从草图到落地的那条线</h2>
         </div>
-        <span class="slider-end slider-start">起点</span>
-        <span class="slider-end slider-finish">终点</span>
+        <div class="section-side"><p>不只是结果，过程也是作品的一部分。</p></div>
       </div>
-    </div>
-
-    <div class="tree-viewport" id="treeViewport">
-      <div class="tree-track">
-
-        <!-- 01 小鱼干 · 作品（坐在架子上） -->
-        <div class="level top" id="level-works">
-          <div class="perch"></div>
-          <button class="toy-item fish-toy" data-view="works" aria-label="小鱼干 - 作品">
-            <span class="fish"><i class="fish-eye"></i><i class="fish-line l1"></i><i class="fish-line l2"></i><i class="fish-tail"></i></span>
-            <span class="toy-tag"><b>01</b> 小鱼干 <small>WORKS · 作品</small></span>
-          </button>
-        </div>
-
-        <!-- 02 逗猫棒 · 技能（挂在架子下） -->
-        <div class="level hang" id="level-skills">
-          <div class="perch"></div>
-          <button class="toy-item feather-toy" data-view="skills" aria-label="逗猫棒 - 技能">
-            <span class="string"></span>
-            <span class="wand"><i class="handle"></i><i class="cord"></i><i class="feather f1"></i><i class="feather f2"></i><i class="feather f3"></i><i class="bell"></i></span>
-            <span class="toy-tag"><b>02</b> 逗猫棒 <small>SKILLS · 技能</small></span>
-          </button>
-        </div>
-
-        <!-- 03 毛线球 · 个人简介（坐在架子上） -->
-        <div class="level top" id="level-about">
-          <div class="perch"></div>
-          <button class="toy-item yarn-toy" data-view="about" aria-label="毛线球 - 个人简介">
-            <span class="yarn-ball"><i class="yarn-stripe s1"></i><i class="yarn-stripe s2"></i><i class="yarn-stripe s3"></i><i class="yarn-tail"></i></span>
-            <span class="toy-tag"><b>03</b> 毛线球 <small>ABOUT ME · 个人简介</small></span>
-          </button>
-        </div>
-
-        <!-- 04 猫薄荷老鼠 · 履历（挂在架子下） -->
-        <div class="level hang" id="level-cv">
-          <div class="perch"></div>
-          <button class="toy-item mouse-toy" data-view="cv" aria-label="猫薄荷老鼠 - 履历">
-            <span class="string"></span>
-            <span class="mouse"><i class="ear e1"></i><i class="ear e2"></i><i class="eye"></i><i class="nose"></i><i class="tail"></i><i class="leaf"></i></span>
-            <span class="toy-tag"><b>04</b> 猫薄荷老鼠 <small>CV · 履历</small></span>
-          </button>
-        </div>
-
-        <!-- 05 纸箱 · 联系（坐在架子上） -->
-        <div class="level top last" id="level-contact">
-          <div class="perch wide"></div>
-          <button class="toy-item box-toy" data-view="contact" aria-label="纸箱 - 联系">
-            <span class="cardboard-box"><i class="flap f1"></i><i class="flap f2"></i><i class="hole"></i><i class="paw-print">🐾</i><i class="box-cat-peek">🐱</i></span>
-            <span class="toy-tag"><b>05</b> 纸箱 <small>CONTACT · 联系</small></span>
-          </button>
-        </div>
-
-        <!-- 横向主柱：从左屏幕边缘伸出，贯穿整条轨道 -->
-        <div class="spine" aria-hidden="true">
-          <span class="spine-coil"></span>
-          <i class="spine-light" style="left:12%"></i>
-          <i class="spine-light" style="left:31%"></i>
-          <i class="spine-light" style="left:50%"></i>
-          <i class="spine-light" style="left:69%"></i>
-          <i class="spine-light" style="left:88%"></i>
-        </div>
-
+      <div class="journey-track">
+        <article class="step"><span class="step-num">01</span><h3>观察</h3><p>从资料、现场和提问开始，先把问题问对。</p></article>
+        <article class="step"><span class="step-num">02</span><h3>草图</h3><p>用最快的线条试方向，保留偶然的好玩细节。</p></article>
+        <article class="step"><span class="step-num">03</span><h3>系统</h3><p>把颜色、字体和网格收成一套可复用的语言。</p></article>
+        <article class="step"><span class="step-num">04</span><h3>落地</h3><p>做成海报、页面或装置，让它在真实场景里说话。</p></article>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 留言板 -->
-  <section class="guestbook" id="guestbook" aria-label="留言板">
-    <div class="gb-inner">
-      <div class="gb-head">
-        <span class="mini-label">GUESTBOOK · 留言板</span>
-        <h2>给泡芙留个言 <span>🐾</span></h2>
-        <p>看了作品集，想说点什么？写下后会打开你的邮件应用，点「发送」就能寄到我的邮箱，我每条都会看 🐾<br>没弹出邮件应用？也可以直接发邮件到 <a class="gb-mail" href="mailto:3303076659@qq.com">3303076659@qq.com</a></p>
-      </div>
-      <form class="gb-form" id="gbForm">
-        <div class="gb-row">
-          <input type="text" id="gbName" placeholder="你的名字(选填)" maxlength="24">
-          <button type="submit" class="gb-submit">贴上留言 🐾</button>
+    <section class="about" id="about">
+      <div class="about-copy">
+        <span class="eyebrow">WHO I AM · 个人简介</span>
+        <h2>我是泡芙，<br>一个爱把信息画成故事的设计生</h2>
+        <p class="lead" data-profile-field="intro">湖北美术学院艺术与科技专业本科在读，专注视觉设计、交互可视化与 AIGC 创作。擅长把研究、叙事与视觉语言结合，做出有温度、能被人记住的作品。</p>
+        <div class="about-meta">
+          <span><b>方向</b><span data-profile-field="focus">视觉设计 / 交互可视化 / AIGC 创作</span></span>
+          <span><b>坐标</b><span data-profile-field="location">湖北 · 武汉 / 宜昌</span></span>
+          <span><b>状态</b><span data-profile-field="availability">可接受合作 / 实习机会</span></span>
         </div>
-        <textarea id="gbText" placeholder="写下你的想法……" maxlength="300" rows="3" required></textarea>
-        <div class="gb-meta"><span id="gbCount">0 / 300</span></div>
-      </form>
+      </div>
+      <aside class="about-note">
+        <span class="eyebrow">TOOLBOX · 工具</span>
+        <div class="skill-tags" id="mainSkills"></div>
+        <p class="note-foot">工具会更新，但项目里的思考过程比工具更重要。</p>
+      </aside>
+    </section>
 
-      <div class="gb-list" id="gbList"></div>
-    </div>
-  </section>
+    <section class="contact" id="contact">
+      <div class="contact-card">
+        <span class="eyebrow">SAY HELLO · 联系我</span>
+        <h2>有合作或想法，欢迎写信给我</h2>
+        <a class="mail" id="mainMail" href="mailto:3303076659@qq.com">3303076659@qq.com <span aria-hidden="true">↗</span></a>
+        <p data-profile-field="contactText">有合作、交流或任何想法，欢迎随时联系我。</p>
+      </div>
+    </section>
+
+    <section class="guestbook" id="guestbook">
+      <div class="gb-inner">
+        <span class="eyebrow">GUESTBOOK · 留言板</span>
+        <h2>留个言 <span aria-hidden="true">↗</span></h2>
+        <p class="gb-tip">写下后会打开邮件应用，点发送就能寄到我的邮箱。<br>没弹出也可以直接发到 <a class="gb-mail" href="mailto:3303076659@qq.com">3303076659@qq.com</a></p>
+        <form class="gb-form" id="gbForm">
+          <div class="gb-row">
+            <input type="text" id="gbName" placeholder="你的名字（选填）" maxlength="24">
+            <button type="submit" class="gb-submit">贴上留言 ↗</button>
+          </div>
+          <textarea id="gbText" placeholder="写下你的想法……" maxlength="300" rows="3" required></textarea>
+          <div class="gb-meta"><span id="gbCount">0 / 300</span></div>
+        </form>
+        <div class="gb-list" id="gbList"></div>
+      </div>
+    </section>
+  </main>
 
   <footer class="site-footer">
-    <span>© 2026 <span data-profile-field="name">泡芙</span> · CAT TREE PORTFOLIO</span>
+    <span>© 2026 <span data-profile-field="name">泡芙</span> · PORTFOLIO</span>
     <span data-profile-field="footerNote">Made with care &amp; a little bit of catnip.</span>
     <button class="creator-entry" id="creatorEntry" title="创作者入口" aria-label="创作者入口">🔒 创作者入口</button>
   </footer>
 </div>
 
-<!-- 丝滑弹窗 -->
+<!-- 详情弹窗（作品 / 技能 / 简介 / 履历 / 联系，供编辑与查看使用） -->
 <div class="pop-overlay" id="popOverlay" hidden></div>
 <div class="pop-card" id="popCard" hidden>
   <div class="pop-head">
-    <div><span class="mini-label" id="popKicker">KEY TAG</span><h2 id="popTitle">个人简介</h2></div>
+    <div><span class="mini-label" id="popKicker">KEY TAG</span><h2 id="popTitle">关于我</h2></div>
     <button class="pop-close" id="popClose" aria-label="关闭">&times;</button>
   </div>
   <div class="pop-body">
@@ -270,60 +160,24 @@
           </div>
         </div>
       </div>
-
       <div class="whatido">
-        <div class="wi-head">
-          <span class="mini-label">WHAT I DO · 我能做什么</span>
-          <h3>我能做什么</h3>
-          <p>从视觉到交互，再到 AIGC —— 把想法做成能被看见、能被人记住的东西。</p>
-        </div>
+        <div class="wi-head"><span class="mini-label">WHAT I DO · 我能做什么</span><h3>我能做什么</h3></div>
         <div class="wi-grid">
-          <div class="wi-card">
-            <span class="wi-icon c1">🎨</span>
-            <h4>视觉设计</h4>
-            <p class="wi-lead">海报、展板、详情页与 IP 形象</p>
-            <ul><li>Photoshop / Illustrator</li><li>版式与品牌视觉</li><li>商品详情页 · 展板</li></ul>
-          </div>
-          <div class="wi-card">
-            <span class="wi-icon c2">🗺️</span>
-            <h4>交互可视化</h4>
-            <p class="wi-lead">让数据和文化信息变得能"走过"</p>
-            <ul><li>Mapbox 交互地图</li><li>非遗点位数据可视化</li><li>空间信息应用</li></ul>
-          </div>
-          <div class="wi-card">
-            <span class="wi-icon c3">✨</span>
-            <h4>AIGC 创作</h4>
-            <p class="wi-lead">从概念到成稿的完整 AI 创作流程</p>
-            <ul><li>Midjourney · SD-WebUI</li><li>ComfyUI · LoRA 训练</li><li>海报 / IP / 商品视觉</li></ul>
-          </div>
-          <div class="wi-card">
-            <span class="wi-icon c4">🐾</span>
-            <h4>三维与展览</h4>
-            <p class="wi-lead">把设计思路搭成看得见的空间</p>
-            <ul><li>SketchUp / AutoCAD 建模</li><li>展陈可视化建模</li><li>展览策划与平面设计</li></ul>
-          </div>
+          <div class="wi-card"><span class="wi-icon c1">◈</span><h4>视觉设计</h4><p class="wi-lead">海报、展板、详情页与 IP 形象</p><ul><li>Photoshop / Illustrator</li><li>版式与品牌视觉</li></ul></div>
+          <div class="wi-card"><span class="wi-icon c2">◇</span><h4>交互可视化</h4><p class="wi-lead">让数据和文化信息变得能“走过”</p><ul><li>Mapbox 交互地图</li><li>非遗点位数据可视化</li></ul></div>
+          <div class="wi-card"><span class="wi-icon c3">✦</span><h4>AIGC 创作</h4><p class="wi-lead">从概念到成稿的完整 AI 创作流程</p><ul><li>Midjourney · SD-WebUI</li><li>ComfyUI · LoRA 训练</li></ul></div>
+          <div class="wi-card"><span class="wi-icon c4">▧</span><h4>三维与展览</h4><p class="wi-lead">把设计思路搭成看得见的空间</p><ul><li>SketchUp / AutoCAD</li><li>展陈可视化建模</li></ul></div>
         </div>
-        <p class="wi-note"><span class="wi-badge">🐾</span> 湖北美术学院艺术与科技专业本科在读，深耕视觉设计、交互可视化与 AIGC 创作；熟悉 AIGC 全流程、LoRA 模型训练与开源编程基础，具备良好的数字视觉创作能力。</p>
       </div>
     </div>
 
     <div class="view" id="view-works" hidden>
       <p class="view-desc" data-profile-field="worksIntro">课程作业、项目实践与探索性创作。</p>
-      <div class="process-strip" aria-label="创作过程">
-        <div class="process-step"><span>01</span><b>观察 · 调研</b></div>
-        <i>→</i>
-        <div class="process-step"><span>02</span><b>草稿 · 实验</b></div>
-        <i>→</i>
-        <div class="process-step"><span>03</span><b>系统 · 排版</b></div>
-        <i>→</i>
-        <div class="process-step"><span>04</span><b>落地 · 呈现</b></div>
-      </div>
       <div class="works-toolbar">
         <div class="filters" id="filters"></div>
         <div class="view-tools">
-          <span class="tools-label">按名称排序</span>
-          <button class="tl-arrow" id="tlPrev" aria-label="向左浏览" title="向左">‹</button>
-          <button class="tl-arrow" id="tlNext" aria-label="向右浏览" title="向右">›</button>
+          <button class="tl-arrow" id="tlPrev" aria-label="向左浏览">‹</button>
+          <button class="tl-arrow" id="tlNext" aria-label="向右浏览">›</button>
         </div>
       </div>
       <div class="grid" id="projectGrid"></div>
@@ -359,11 +213,7 @@
     </div>
 
     <div class="view" id="view-contact" hidden>
-      <div class="contact-card">
-        <span class="stamp">AIR<br>MAIL<br>🐾</span>
-        <p class="view-desc" data-profile-field="contactText">有合作或想法，欢迎联系我。</p>
-        <a class="contact-mail" id="contactMail" href="mailto:3303076659@qq.com">3303076659@qq.com <span>↗</span></a>
-      </div>
+      <div class="contact-card"><span class="stamp">AIR<br>MAIL<br>↗</span><p class="view-desc" data-profile-field="contactText">有合作或想法，欢迎联系我。</p><a class="contact-mail" id="contactMail" href="mailto:3303076659@qq.com">3303076659@qq.com <span>↗</span></a></div>
     </div>
 
   </div>
@@ -405,52 +255,34 @@
     <div class="modal-head"><h3 id="modalTitle">编辑作品</h3><button class="close-btn" id="modalClose" aria-label="关闭">&times;</button></div>
     <div class="modal-body">
       <div class="field-group"><label>标题 *</label><input type="text" id="f-title" placeholder="作品名称"></div>
-      <div class="field-row">
-        <div class="field-group"><label>分类</label><input type="text" id="f-category"></div>
-        <div class="field-group"><label>年份</label><input type="text" id="f-year"></div>
-      </div>
+      <div class="field-row"><div class="field-group"><label>分类</label><input type="text" id="f-category"></div><div class="field-group"><label>年份</label><input type="text" id="f-year"></div></div>
       <div class="field-group"><label>简介</label><textarea id="f-desc" rows="3"></textarea></div>
       <div class="field-group"><label>封面图片地址</label><input type="text" id="f-image"></div>
-      <div class="field-group"><label>链接（可选）</label><input type="text" id="f-link" placeholder="网址或 ../index2.html"></div>
+      <div class="field-group"><label>链接（可选）</label><input type="text" id="f-link" placeholder="网址或 index2.html"></div>
       <div class="field-group"><label>标签（逗号分隔）</label><input type="text" id="f-tags"></div>
     </div>
-    <div class="modal-foot">
-      <button class="cancel-btn" id="modalCancel">取消</button>
-      <button class="save-btn" id="modalSave">保存作品</button>
-    </div>
+    <div class="modal-foot"><button class="cancel-btn" id="modalCancel">取消</button><button class="save-btn" id="modalSave">保存作品</button></div>
   </div>
 </div>
 
-<!-- 创作者验证弹窗 -->
 <div class="modal" id="creatorModal" hidden>
   <div class="modal-box creator-box">
-    <div class="modal-head"><h3>🐾 创作者验证</h3><button class="close-btn" id="creatorClose" aria-label="关闭">&times;</button></div>
-    <div class="modal-body">
-      <p class="hint">此页面仅供浏览。如需编辑内容，请输入创作者密码。</p>
-      <div class="field-group"><label>创作者密码</label><input type="password" id="creatorPwd" placeholder="输入密码" autocomplete="off"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="cancel-btn" id="creatorCancel">取消</button>
-      <button class="save-btn" id="creatorSubmit">验证并进入</button>
-    </div>
+    <div class="modal-head"><h3>创作者验证</h3><button class="close-btn" id="creatorClose" aria-label="关闭">&times;</button></div>
+    <div class="modal-body"><p class="hint">此页面仅供浏览。如需编辑内容，请输入创作者密码。</p><div class="field-group"><label>创作者密码</label><input type="password" id="creatorPwd" placeholder="输入密码" autocomplete="off"></div></div>
+    <div class="modal-foot"><button class="cancel-btn" id="creatorCancel">取消</button><button class="save-btn" id="creatorSubmit">验证并进入</button></div>
   </div>
 </div>
 
-<!-- 项目详情弹窗 -->
 <div class="detail-overlay" id="detailOverlay" hidden></div>
 <div class="detail-card" id="detailCard" hidden role="dialog" aria-modal="true" aria-label="项目详情">
   <button class="detail-close" id="detailClose" aria-label="关闭详情">&times;</button>
   <div class="detail-scroll" id="detailScroll"></div>
 </div>
 
-<!-- 高清图灯箱 -->
 <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="作品高清图">
   <button class="lb-close" id="lbClose" aria-label="关闭大图">&times;</button>
   <button class="lb-nav lb-prev" id="lbPrev" aria-label="上一张">‹</button>
-  <figure class="lb-figure">
-    <img class="lb-img" id="lbImg" alt="">
-    <figcaption class="lb-cap"><span id="lbCat"></span><b id="lbTitle"></b><small id="lbCount"></small></figcaption>
-  </figure>
+  <figure class="lb-figure"><img class="lb-img" id="lbImg" alt=""><figcaption class="lb-cap"><span id="lbCat"></span><b id="lbTitle"></b><small id="lbCount"></small></figcaption></figure>
   <button class="lb-nav lb-next" id="lbNext" aria-label="下一张">›</button>
 </div>
 
