@@ -278,9 +278,10 @@ const imageRatioCache = new Map();
 const FRAME_STYLES = ['style-gold', 'style-paper', 'style-plaster', 'style-wood', 'style-silver', 'style-green'];
 const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
 let heroIndex = 0;
-let heroEls = [];
-let heroLastMoved = false;
-let heroSpin = 0;
+let heroViewer = null;
+let heroPhotoMesh = null;
+let heroPhotoTexture = null;
+let heroRenderedIndex = -1;
 
 function preloadImageRatios() {
   const urls = [...new Set(data.projects.map(p => (p.image || '').trim()).filter(Boolean))];
@@ -550,85 +551,151 @@ const JOURNEY_STEPS = [
   { num: '05', id: 'p7', title: '落地与复盘', text: '从屏幕走到真实场景：展览物料、3D 展陈和印刷输出，再根据现场反馈回头修改。', tags: ['展览落地', '三维建模', '现场复盘'] }
 ];
 
-function renderHero() {
-  const stage = document.getElementById('heroStage');
-  if (!stage) return;
-  if (!heroEls.length) {
-    stage.innerHTML = '<figure class="hero-frame">' +
-      '<div class="hero-3d">' +
-        '<div class="face face-back"></div><div class="face face-left"></div><div class="face face-right"></div>' +
-        '<div class="face face-top"></div><div class="face face-bottom"></div>' +
-        '<div class="face face-front"><div class="hero-art"><img alt=""></div><figcaption></figcaption></div>' +
-      '</div></figure>' + '<div class="hero-dots" id="heroDots"></div>';
-    heroEls = Array.from(stage.querySelectorAll('.hero-frame'));
-    stage.addEventListener('click', e => {
-      const dot = e.target.closest('.hero-dot');
-      if (dot) { heroIndex = Number(dot.dataset.i); renderHero(); return; }
-      const fig = e.target.closest('.hero-frame');
-      if (heroLastMoved) { heroLastMoved = false; return; }
-      if (fig && fig._project) openProject([fig._project], 0);
-    });
+let heroArtToken = 0;
 
-    const frame = heroEls[0];
-    const tilt = { x: 6, y: -18 };
-    let drag = null;
-    let gliding = false;
+function heroProjectAt(i) {
+  const id = HERO_IDS[((i % HERO_IDS.length) + HERO_IDS.length) % HERO_IDS.length];
+  return data.projects.find(item => item.id === id) || data.projects[0];
+}
 
-    function glide() {
-      heroSpin *= .94;
-      if (Math.abs(heroSpin) < .05) { gliding = false; return; }
-      tilt.y += heroSpin;
-      frame.style.setProperty('--ry', tilt.y.toFixed(2) + 'deg');
-      requestAnimationFrame(glide);
-    }
-
-    frame.addEventListener('pointerdown', e => {
-      if (e.button !== 0) return;
-      drag = { sx: e.clientX, sy: e.clientY, rx: tilt.x, ry: tilt.y, moved: false };
-      heroSpin = 0;
-      frame.classList.add('dragging');
-    });
-    frame.addEventListener('pointermove', e => {
-      if (!drag) return;
-      const dx = e.clientX - drag.sx;
-      const dy = e.clientY - drag.sy;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.moved = true;
-      heroSpin = dx * .22;
-      tilt.y = drag.ry + dx * .55;
-      tilt.x = Math.max(-42, Math.min(42, drag.rx - dy * .32));
-      frame.style.setProperty('--rx', tilt.x.toFixed(2) + 'deg');
-      frame.style.setProperty('--ry', tilt.y.toFixed(2) + 'deg');
-    });
-    const endDrag = () => {
-      if (!drag) return;
-      heroLastMoved = drag.moved;
-      drag = null;
-      frame.classList.remove('dragging');
-      if (!gliding && Math.abs(heroSpin) > .05) { gliding = true; glide(); }
-      setTimeout(() => { heroLastMoved = false; }, 120);
-    };
-    frame.addEventListener('pointerup', endDrag);
-    frame.addEventListener('pointercancel', endDrag);
-  }
-  const id = HERO_IDS[heroIndex % HERO_IDS.length];
-  const p = data.projects.find(item => item.id === id) || data.projects[0];
-  if (!p) return;
-  heroEls.forEach(el => {
-    el._project = p;
-    el.className = 'hero-frame ' + styleFor(p, 0) + ' ' + (imageInfo(p).ratio < 0.9 ? 'is-tall' : '') +
-      (el.classList.contains('dragging') ? ' dragging' : '');
-    const img = el.querySelector('img');
-    const src = (p.image || '').trim();
-    if (img.getAttribute('src') !== src) img.src = src;
-    img.style.setProperty('--delay', '0s');
-    img.alt = p.title || '作品';
-    el.querySelector('figcaption').innerHTML = '<b>' + escapeHtml(p.title || '未命名作品') + '</b><span>' +
-      escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span>';
+function loadHeroImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
   });
+}
+
+function heroSampleMesh(model) {
+  let found = null;
+  model.traverse(o => { if (!found && o.isMesh && o.geometry && o.material) found = o; });
+  return found;
+}
+
+function heroMaterialOf(sample) {
+  return Array.isArray(sample.material) ? sample.material[0] : sample.material;
+}
+
+function makeHeroQuad(sample, w, h, x, y, z, texture, color) {
+  const Geo = sample.geometry.constructor;
+  const Attr = sample.geometry.attributes.position.constructor;
+  const Mat = heroMaterialOf(sample).constructor;
+  const Mesh = sample.constructor;
+  const geo = new Geo();
+  geo.setAttribute('position', new Attr(new Float32Array([
+    -w / 2, -h / 2, 0, w / 2, -h / 2, 0, w / 2, h / 2, 0, -w / 2, h / 2, 0
+  ]), 3));
+  geo.setAttribute('normal', new Attr(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]), 3));
+  geo.setAttribute('uv', new Attr(new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]), 2));
+  geo.setIndex([0, 1, 2, 0, 2, 3]);
+  const params = { metalness: 0, roughness: 1, side: 2, toneMapped: false };
+  if (texture) params.map = texture; else params.color = color;
+  const mesh = new Mesh(geo, new Mat(params));
+  mesh.position.set(x, y, z);
+  return mesh;
+}
+
+async function setHeroArtwork(i) {
+  const token = ++heroArtToken;
+  const p = heroProjectAt(i);
+  const src = p && (p.image || '').trim();
+  if (!src || !heroPhotoTexture) return;
+  try {
+    const img = await loadHeroImage(src);
+    if (token !== heroArtToken) return;
+    heroPhotoTexture.image = img;
+    heroPhotoTexture.needsUpdate = true;
+    if (heroPhotoMesh) {
+      const maxW = 0.35, maxH = 0.74;
+      const r = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
+      let w = maxW, h = w / r;
+      if (h > maxH) { h = maxH; w = h * r; }
+      heroPhotoMesh.scale.set(w / maxW, h / maxH, 1);
+    }
+  } catch (err) {
+    console.warn('首屏作品图加载失败', err);
+  }
+}
+
+function initHero3D() {
+  const viewer = document.getElementById('heroViewer');
+  if (!viewer) return;
+  heroViewer = viewer;
+  const loading = document.getElementById('heroLoading');
+  let loaded = false;
+
+  function onLoad() {
+    if (loaded) return;
+    loaded = true;
+    if (loading) loading.classList.add('done');
+    const model = viewer.model;
+    const sample = model && heroSampleMesh(model);
+    if (!sample) return;
+    try {
+      const baseMat = heroMaterialOf(sample);
+      if (!baseMat.map) return;
+      const tex = baseMat.map.clone();
+      const board = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, 0.389, null, 0xf8f2e7);
+      const photo = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, 0.392, tex, null);
+      model.add(board);
+      model.add(photo);
+      heroPhotoMesh = photo;
+      heroPhotoTexture = tex;
+      heroRenderedIndex = -1;
+      renderHero();
+    } catch (err) {
+      console.warn('无法把作品图放进 3D 相框', err);
+    }
+  }
+
+  setTimeout(() => { if (!loaded && loading) loading.textContent = '相框加载较慢，请稍候…'; }, 6000);
+  viewer.addEventListener('error', () => {
+    if (loading) loading.textContent = '3D 相框加载失败，请检查网络';
+  });
+  customElements.whenDefined('model-viewer').then(() => {
+    viewer.addEventListener('load', onLoad, { once: true });
+    if (viewer.model) onLoad();
+  });
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => { viewer.autoRotate = entry.isIntersecting; });
+    }, { threshold: 0.05 });
+    io.observe(viewer);
+  }
+
+  const prev = document.getElementById('heroPrev');
+  const next = document.getElementById('heroNext');
+  if (prev) prev.addEventListener('click', () => {
+    heroIndex = (heroIndex - 1 + HERO_IDS.length) % HERO_IDS.length; renderHero();
+  });
+  if (next) next.addEventListener('click', () => {
+    heroIndex = (heroIndex + 1) % HERO_IDS.length; renderHero();
+  });
+}
+
+function renderHero() {
+  const p = heroProjectAt(heroIndex);
+  const label = document.getElementById('heroLabel');
+  if (label && p) {
+    label.innerHTML = '<b>' + escapeHtml(p.title || '未命名作品') + '</b><span>' +
+      escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span>';
+  }
   const dots = document.getElementById('heroDots');
-  if (dots) dots.innerHTML = HERO_IDS.map((_, i) =>
-    '<button type="button" class="hero-dot ' + (i === heroIndex ? 'active' : '') + '" data-i="' + i + '" aria-label="第' + (i + 1) + '张"></button>'
-  ).join('');
+  if (dots) {
+    dots.innerHTML = HERO_IDS.map((_, i) =>
+      '<button type="button" class="hero-dot ' + (i === heroIndex ? 'active' : '') + '" data-i="' + i + '" aria-label="第' + (i + 1) + '张作品"></button>'
+    ).join('');
+    dots.querySelectorAll('.hero-dot').forEach(btn => {
+      btn.addEventListener('click', () => { heroIndex = Number(btn.dataset.i); renderHero(); });
+    });
+  }
+  if (heroRenderedIndex !== heroIndex) {
+    heroRenderedIndex = heroIndex;
+    setHeroArtwork(heroIndex);
+  }
 }
 
 function renderJourney() {
@@ -1537,6 +1604,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- 启动 ---------- */
+initHero3D();
 preloadImageRatios().finally(render);
 setInterval(() => {
   heroIndex = (heroIndex + 1) % HERO_IDS.length;
