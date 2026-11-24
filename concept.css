@@ -89,20 +89,20 @@ section { scroll-margin-top: 86px; }
 .btn.ghost:hover { box-shadow: 5px 7px 0 var(--line); }
 .hero-note { margin-top: 32px; font-family: var(--hand); font-size: 17px; color: var(--muted); opacity: .85; }
 
-.hero-collage { position: relative; height: min(560px, 62vh); min-height: 420px; }
+.hero-collage { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; }
 .polaroid {
-  position: absolute; margin: 0; padding: 9px 9px 4px;
+  position: relative; flex: 0 0 auto; width: 32%; margin: 0; padding: 9px 9px 4px;
   background: #fffdf8; border: 1px solid var(--line);
   box-shadow: 0 16px 34px var(--shadow);
   transition: transform .35s;
 }
-.polaroid img { width: 100%; height: 100%; object-fit: cover; background: var(--line); }
+.polaroid img { width: 100%; height: auto; object-fit: contain; background: var(--paper-2); }
 .polaroid figcaption { font-family: var(--hand); font-size: 15px; color: var(--muted); text-align: center; padding: 6px 2px 3px; }
-.polaroid-a { width: 59%; height: 70%; left: 19%; top: 4%; transform: rotate(-3deg); z-index: 3; }
-.polaroid-b { width: 43%; height: 48%; left: 0; top: 45%; transform: rotate(5deg); z-index: 2; }
-.polaroid-c { width: 42%; height: 45%; right: 0; bottom: 1%; transform: rotate(-6deg); z-index: 4; }
-.polaroid:hover { transform: rotate(0) translateY(-6px); z-index: 5; }
-.doodle-arrow { position: absolute; right: 2%; top: 26%; width: 132px; color: var(--accent); transform: rotate(8deg); z-index: 6; pointer-events: none; }
+.polaroid-a { transform: rotate(-4deg) translateY(-14px); z-index: 3; }
+.polaroid-b { transform: rotate(3deg) translateY(18px); z-index: 2; }
+.polaroid-c { transform: rotate(-3deg) translateY(-6px); z-index: 4; }
+.polaroid:hover { transform: rotate(0) translateY(-8px); z-index: 5; }
+.doodle-arrow { position: absolute; right: -2%; top: 4%; width: 110px; color: var(--accent); transform: rotate(8deg); z-index: 6; pointer-events: none; }
 
 .thread-divider { height: 96px; color: var(--accent); opacity: .45; }
 .thread-divider svg { width: 100%; height: 100%; display: block; }
@@ -126,10 +126,10 @@ section { scroll-margin-top: 86px; }
 .work-card:nth-child(even) { transform: rotate(.6deg); }
 .work-card:hover { transform: translateY(-8px) rotate(0); box-shadow: 11px 15px 0 var(--shadow); }
 .work-card.featured { grid-column: 1 / -1; }
-.work-card.featured .work-media { height: 380px; }
-.work-media { height: 240px; overflow: hidden; background: var(--line); }
-.work-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
-.work-card:hover .work-media img { transform: scale(1.04); }
+.work-media { height: auto; overflow: hidden; background: var(--paper-2); }
+.work-media img { width: 100%; height: auto; object-fit: contain; transition: transform .6s; }
+.work-card:hover .work-media img { transform: scale(1.02); }
+.work-extra { width: 100%; height: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; }
 .tape {
   position: absolute; top: 14px; left: 50%; width: 92px; height: 24px; z-index: 3;
   translate: -50% 0; transform: rotate(-3deg);
@@ -193,7 +193,7 @@ section { scroll-margin-top: 86px; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; padding-top: 52px; gap: 46px; }
-  .hero-collage { height: 430px; min-height: 0; max-width: 620px; width: 100%; margin: 0 auto; }
+  .hero-collage { max-width: 760px; width: 100%; margin: 0 auto; }
   .works-grid { grid-template-columns: 1fr; }
   .work-card.featured { grid-column: auto; }
   .work-card.featured .work-media { height: 300px; }
@@ -215,15 +215,14 @@ section { scroll-margin-top: 86px; }
   .hero h1 { font-size: clamp(38px, 10vw, 58px); }
   .lead { font-size: 15px; }
   .hero-note { font-size: 15px; }
-  .hero-collage { height: 330px; }
-  .polaroid-a { width: 64%; height: 66%; left: 17%; }
-  .polaroid-b { width: 47%; height: 44%; }
-  .polaroid-c { width: 46%; height: 42%; }
-  .doodle-arrow { width: 88px; }
+  .hero-collage { flex-wrap: wrap; gap: 12px; }
+  .polaroid { width: 46%; }
+  .polaroid-c { margin: 0 auto; }
+  .doodle-arrow { display: none; }
   .thread-divider { height: 68px; }
   .works { padding: 20px 5vw 70px; }
   .works-grid { gap: 26px; }
-  .work-media, .work-card.featured .work-media { height: 220px; }
+  .work-media { height: auto; }
   .work-body { padding: 20px 20px 24px; }
   .work-body h3 { font-size: 21px; }
   .journey { padding: 70px 5vw; }
