@@ -279,7 +279,7 @@ const FRAME_STYLES = ['style-gold', 'style-paper', 'style-plaster', 'style-wood'
 const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
 let heroIndex = 0;
 let heroViewer = null;
-let heroPhotoMesh = null;
+let heroPhotoMeshes = [];
 let heroRenderedIndex = -1;
 let heroTexCtor = null;
 let heroTexColorSpace = null;
@@ -562,24 +562,43 @@ function heroProjectAt(i) {
 function loadHeroImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.onerror = reject;
+    img.onerror = () => reject(new Error('图片加载失败: ' + src));
     img.src = src;
   });
 }
 
+function makeHeroTexture(img) {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || 1024;
+  canvas.height = img.naturalHeight || 1024;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const tex = new heroTexCtor(canvas);
+  if (heroTexColorSpace && 'colorSpace' in tex) tex.colorSpace = heroTexColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 function heroSampleMesh(model) {
   let found = null;
-  model.traverse(o => { if (!found && o.isMesh && o.geometry && o.material) found = o; });
-  return found;
+  let textured = null;
+  model.traverse(o => {
+    if (!o.isMesh || !o.geometry || !o.material) return;
+    if (!found) found = o;
+    const mat = heroMaterialOf(o);
+    if (!textured && mat && mat.map) textured = o;
+  });
+  return textured || found;
 }
 
 function heroMaterialOf(sample) {
   return Array.isArray(sample.material) ? sample.material[0] : sample.material;
 }
 
-function makeHeroQuad(sample, w, h, x, y, z, texture, color) {
+function makeHeroQuad(sample, w, h, x, y, z, texture, color, flip) {
   const Geo = sample.geometry.constructor;
   const Attr = sample.geometry.attributes.position.constructor;
   const Mat = heroMaterialOf(sample).constructor;
@@ -588,10 +607,11 @@ function makeHeroQuad(sample, w, h, x, y, z, texture, color) {
   geo.setAttribute('position', new Attr(new Float32Array([
     -w / 2, -h / 2, 0, w / 2, -h / 2, 0, w / 2, h / 2, 0, -w / 2, h / 2, 0
   ]), 3));
-  geo.setAttribute('normal', new Attr(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]), 3));
+  const nz = flip ? -1 : 1;
+  geo.setAttribute('normal', new Attr(new Float32Array([0, 0, nz, 0, 0, nz, 0, 0, nz, 0, 0, nz]), 3));
   geo.setAttribute('uv', new Attr(new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), 2));
-  geo.setIndex([0, 1, 2, 0, 2, 3]);
-  const params = { metalness: 0, roughness: 1, side: 2, toneMapped: false };
+  geo.setIndex(flip ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3]);
+  const params = { metalness: 0, roughness: 1, side: 0, toneMapped: false };
   if (texture) params.map = texture; else params.color = color;
   const mesh = new Mesh(geo, new Mat(params));
   mesh.position.set(x, y, z);
@@ -602,23 +622,22 @@ async function setHeroArtwork(i) {
   const token = ++heroArtToken;
   const p = heroProjectAt(i);
   const src = p && (p.image || '').trim();
-  if (!src || !heroPhotoMesh || !heroTexCtor) return;
+  if (!src || !heroPhotoMeshes.length || !heroTexCtor) return;
   try {
     const img = await loadHeroImage(src);
     if (token !== heroArtToken) return;
-    const tex = new heroTexCtor(img);
-    if (heroTexColorSpace && 'colorSpace' in tex) tex.colorSpace = heroTexColorSpace;
-    tex.anisotropy = 8;
-    tex.needsUpdate = true;
-    const old = heroPhotoMesh.material.map;
-    heroPhotoMesh.material.map = tex;
-    heroPhotoMesh.material.needsUpdate = true;
-    if (old && old !== heroBaseMap && typeof old.dispose === 'function') old.dispose();
+    const tex = makeHeroTexture(img);
+    heroPhotoMeshes.forEach(mesh => {
+      const old = mesh.material.map;
+      mesh.material.map = tex;
+      mesh.material.needsUpdate = true;
+      if (old && old !== heroBaseMap && typeof old.dispose === 'function') old.dispose();
+    });
     const maxW = 0.35, maxH = 0.74;
     const r = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
     let w = maxW, h = w / r;
     if (h > maxH) { h = maxH; w = h * r; }
-    heroPhotoMesh.scale.set(w / maxW, h / maxH, 1);
+    heroPhotoMeshes.forEach(mesh => mesh.scale.set(w / maxW, h / maxH, 1));
   } catch (err) {
     console.warn('首屏作品图加载失败', err);
   }
@@ -640,15 +659,21 @@ function initHero3D() {
     if (!sample) return;
     try {
       const baseMat = heroMaterialOf(sample);
-      if (!baseMat.map) return;
-      heroBaseMap = baseMat.map;
-      heroTexCtor = baseMat.map.constructor;
-      heroTexColorSpace = baseMat.map.colorSpace || 'srgb';
-      const board = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, 0.390, null, 0xf8f2e7);
-      const photo = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, 0.393, null, 0xffffff);
-      model.add(board);
-      model.add(photo);
-      heroPhotoMesh = photo;
+      if (baseMat && baseMat.map) {
+        heroBaseMap = baseMat.map;
+        heroTexCtor = baseMat.map.constructor;
+        heroTexColorSpace = baseMat.map.colorSpace || 'srgb';
+      }
+      if (!heroTexCtor) {
+        console.warn('无法获取纹理构造函数');
+        return;
+      }
+      const boardFront = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, 0.396, null, 0xf8f2e7, false);
+      const photoFront = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, 0.399, null, 0xffffff, false);
+      const boardBack = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, -0.396, null, 0xf8f2e7, true);
+      const photoBack = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, -0.399, null, 0xffffff, true);
+      model.add(boardFront, photoFront, boardBack, photoBack);
+      heroPhotoMeshes = [photoFront, photoBack];
       heroRenderedIndex = -1;
       renderHero();
     } catch (err) {
@@ -996,35 +1021,74 @@ function stepLightbox(step) {
 function openDetail(project) {
   if (!detailCard || !project || !project.detail) return;
   const d = project.detail;
+  const imgs = (d.images && d.images.length) ? d.images : [{ src: project.image || '', cap: project.title || '' }];
   const sections = (d.sections || []).map(s =>
     '<div class="detail-sec"><h4>' + escapeHtml(s.h || '') + '</h4><p>' + escapeHtml(s.p || '') + '</p></div>'
   ).join('');
-  const images = (d.images || []).map((im, i) =>
-    '<figure class="detail-figure"><img src="' + escapeAttr(im.src) + '" alt="' + escapeAttr(im.cap || project.title) +
-    '" loading="lazy" decoding="async" data-detail-img="' + i + '">' +
-    (im.cap ? '<figcaption>' + escapeHtml(im.cap) + '</figcaption>' : '') + '</figure>'
-  ).join('');
 
   detailScroll.innerHTML =
-    '<header class="detail-head">' +
-      '<span class="detail-kicker">' + escapeHtml(project.category || '项目') + ' · ' + escapeHtml(project.year || '') + '</span>' +
-      '<h2>' + escapeHtml(project.title || '') + '</h2>' +
-      '<p class="detail-lead">' + escapeHtml(d.lead || project.desc || '') + '</p>' +
-    '</header>' +
-    '<div class="detail-sections">' + sections + '</div>' +
-    '<div class="detail-gallery">' + images + '</div>' +
-    (d.note ? '<div class="detail-note">' + escapeHtml(d.note) + '</div>' : '');
+    '<div class="detail-split">' +
+      '<div class="detail-visual">' +
+        '<div class="detail-stage">' +
+          '<img class="detail-stage-img" id="detailStageImg" src="' + escapeAttr(imgs[0].src) + '" alt="' + escapeAttr(imgs[0].cap || project.title || '') + '">' +
+          '<button type="button" class="detail-stage-nav detail-stage-prev" id="detailPrev" aria-label="上一张">‹</button>' +
+          '<button type="button" class="detail-stage-nav detail-stage-next" id="detailNext" aria-label="下一张">›</button>' +
+        '</div>' +
+        '<div class="detail-caption"><span id="detailCap">' + escapeHtml(imgs[0].cap || '') + '</span>' +
+          '<span class="detail-count"><b id="detailNum">01</b> / ' + String(imgs.length).padStart(2, '0') + '</span></div>' +
+        '<div class="detail-thumbs" id="detailThumbs">' + imgs.map((im, i) =>
+          '<button type="button" class="detail-thumb ' + (i === 0 ? 'active' : '') + '" data-i="' + i + '" aria-label="第' + (i + 1) + '张">' +
+          '<img src="' + escapeAttr(im.src) + '" alt="" loading="lazy"></button>'
+        ).join('') + '</div>' +
+      '</div>' +
+      '<div class="detail-text">' +
+        '<header class="detail-head">' +
+          '<span class="detail-kicker">' + escapeHtml(project.category || '项目') + ' · ' + escapeHtml(project.year || '') + '</span>' +
+          '<h2>' + escapeHtml(project.title || '') + '</h2>' +
+          '<p class="detail-lead">' + escapeHtml(d.lead || project.desc || '') + '</p>' +
+        '</header>' +
+        '<div class="detail-sections">' + sections + '</div>' +
+        (d.note ? '<div class="detail-note">' + escapeHtml(d.note) + '</div>' : '') +
+      '</div>' +
+    '</div>';
 
-  detailScroll.querySelectorAll('[data-detail-img]').forEach(img => {
-    img.addEventListener('click', () => {
-      currentGallery = (d.images || []).map((im, i) => ({
-        image: im.src,
-        title: im.cap || project.title,
-        category: '项目详情',
-        year: String(i + 1)
-      }));
-      openLightbox(Number(img.dataset.detailImg));
-    });
+  let detailIndex = 0;
+  const stageImg = document.getElementById('detailStageImg');
+  const capEl = document.getElementById('detailCap');
+  const numEl = document.getElementById('detailNum');
+  function showDetailImage(index) {
+    detailIndex = (index + imgs.length) % imgs.length;
+    const im = imgs[detailIndex];
+    stageImg.style.opacity = '0';
+    const pre = new Image();
+    pre.onload = pre.onerror = () => {
+      if (detailIndex !== ((index + imgs.length) % imgs.length)) return;
+      stageImg.src = im.src;
+      stageImg.alt = im.cap || project.title || '';
+      stageImg.style.opacity = '1';
+    };
+    pre.src = im.src;
+    if (capEl) capEl.textContent = im.cap || '';
+    if (numEl) numEl.textContent = String(detailIndex + 1).padStart(2, '0');
+    detailScroll.querySelectorAll('.detail-thumb').forEach((b, i) => b.classList.toggle('active', i === detailIndex));
+  }
+  const prevBtn = document.getElementById('detailPrev');
+  const nextBtn = document.getElementById('detailNext');
+  const many = imgs.length > 1;
+  if (prevBtn) { prevBtn.hidden = !many; prevBtn.addEventListener('click', () => showDetailImage(detailIndex - 1)); }
+  if (nextBtn) { nextBtn.hidden = !many; nextBtn.addEventListener('click', () => showDetailImage(detailIndex + 1)); }
+  detailScroll.querySelectorAll('.detail-thumb').forEach(b => {
+    b.addEventListener('click', () => showDetailImage(Number(b.dataset.i)));
+  });
+  stageImg.addEventListener('click', () => {
+    currentGallery = imgs.map(im => ({
+      image: im.src, title: im.cap || project.title, category: '项目详情', year: ''
+    }));
+    openLightbox(detailIndex);
+  });
+  detailScroll.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') showDetailImage(detailIndex - 1);
+    if (e.key === 'ArrowRight') showDetailImage(detailIndex + 1);
   });
 
   detailScroll.scrollTop = 0;
@@ -1347,6 +1411,63 @@ function closeModal() {
   }, { passive: true });
   window.addEventListener('resize', update);
   update();
+})();
+
+(function initScrollParallax() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const targets = [
+    { el: document.querySelector('.hero h1'), speed: 0.06 },
+    { el: document.querySelector('.works .section-head'), speed: 0.05 },
+    { el: document.querySelector('.journey .section-head'), speed: 0.05 },
+    { el: document.querySelector('.about-note'), speed: 0.07 }
+  ].filter(t => t.el);
+  if (!targets.length) return;
+  let ticking = false;
+  function apply() {
+    ticking = false;
+    const y = window.scrollY;
+    targets.forEach(t => {
+      const rect = t.el.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      const offset = (rect.top + rect.height / 2 - window.innerHeight / 2) * t.speed;
+      t.el.style.transform = 'translate3d(0,' + (-offset).toFixed(1) + 'px,0)';
+    });
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(apply); ticking = true; }
+  }, { passive: true });
+  apply();
+})();
+
+(function initRipple() {
+  document.addEventListener('pointerdown', e => {
+    const btn = e.target.closest('.btn,.text-btn,.hero-nav,.theme-fab,.hero-dot');
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) * 2.2;
+    const span = document.createElement('span');
+    span.className = 'ripple';
+    span.style.width = span.style.height = size + 'px';
+    span.style.left = (e.clientX - r.left - size / 2) + 'px';
+    span.style.top = (e.clientY - r.top - size / 2) + 'px';
+    if (getComputedStyle(btn).position === 'static') btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
+    btn.appendChild(span);
+    setTimeout(() => span.remove(), 620);
+  });
+})();
+
+(function initMagnet() {
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+  document.querySelectorAll('.hero-nav,.theme-fab').forEach(el => {
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      const dx = (e.clientX - r.left - r.width / 2) * 0.22;
+      const dy = (e.clientY - r.top - r.height / 2) * 0.22;
+      el.style.translate = dx.toFixed(1) + 'px ' + dy.toFixed(1) + 'px';
+    });
+    el.addEventListener('pointerleave', () => { el.style.translate = ''; });
+  });
 })();
 
 (function initTimelineScroll() {
