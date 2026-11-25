@@ -273,7 +273,6 @@ let revealObserver = null;
 let viewHideTimer = 0;
 let toastTimer = 0;
 let lastOriginEl = null;
-let lastFlightProject = null;
 const imageRatioCache = new Map();
 const FRAME_STYLES = ['style-gold', 'style-paper', 'style-plaster', 'style-wood', 'style-silver', 'style-green'];
 const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
@@ -281,9 +280,6 @@ let heroIndex = 0;
 let heroViewer = null;
 let heroPhotoMeshes = [];
 let heroRenderedIndex = -1;
-let heroTexCtor = null;
-let heroTexColorSpace = null;
-let heroBaseMap = null;
 
 function preloadImageRatios() {
   const urls = [...new Set(data.projects.map(p => (p.image || '').trim()).filter(Boolean))];
@@ -576,45 +572,24 @@ function makeHeroTexture(img) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  const tex = new heroTexCtor(canvas);
-  if (heroTexColorSpace && 'colorSpace' in tex) tex.colorSpace = heroTexColorSpace;
+  const tex = new window.THREE.CanvasTexture(canvas);
+  tex.colorSpace = window.THREE.SRGBColorSpace;
   tex.needsUpdate = true;
   return tex;
 }
 
-function heroSampleMesh(model) {
-  let found = null;
-  let textured = null;
-  model.traverse(o => {
-    if (!o.isMesh || !o.geometry || !o.material) return;
-    if (!found) found = o;
-    const mat = heroMaterialOf(o);
-    if (!textured && mat && mat.map) textured = o;
+function makeHeroQuad(w, h, x, y, z, texture, color, flip) {
+  const geo = new window.THREE.PlaneGeometry(w, h);
+  const mat = new window.THREE.MeshBasicMaterial({
+    map: texture || null,
+    color: texture ? 0xffffff : color,
+    side: window.THREE.DoubleSide,
+    transparent: false,
+    toneMapped: false
   });
-  return textured || found;
-}
-
-function heroMaterialOf(sample) {
-  return Array.isArray(sample.material) ? sample.material[0] : sample.material;
-}
-
-function makeHeroQuad(sample, w, h, x, y, z, texture, color, flip) {
-  const Geo = sample.geometry.constructor;
-  const Attr = sample.geometry.attributes.position.constructor;
-  const Mat = heroMaterialOf(sample).constructor;
-  const Mesh = sample.constructor;
-  const geo = new Geo();
-  geo.setAttribute('position', new Attr(new Float32Array([
-    -w / 2, -h / 2, 0, w / 2, -h / 2, 0, w / 2, h / 2, 0, -w / 2, h / 2, 0
-  ]), 3));
-  const nz = flip ? -1 : 1;
-  geo.setAttribute('normal', new Attr(new Float32Array([0, 0, nz, 0, 0, nz, 0, 0, nz, 0, 0, nz]), 3));
-  geo.setAttribute('uv', new Attr(new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), 2));
-  geo.setIndex(flip ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3]);
-  const params = { metalness: 0, roughness: 1, side: 0, toneMapped: false };
-  if (texture) params.map = texture; else params.color = color;
-  const mesh = new Mesh(geo, new Mat(params));
+  const mesh = new window.THREE.Mesh(geo, mat);
   mesh.position.set(x, y, z);
+  if (flip) mesh.rotation.y = Math.PI;
   return mesh;
 }
 
@@ -622,7 +597,7 @@ async function setHeroArtwork(i) {
   const token = ++heroArtToken;
   const p = heroProjectAt(i);
   const src = p && (p.image || '').trim();
-  if (!src || !heroPhotoMeshes.length || !heroTexCtor) return;
+  if (!src || !heroPhotoMeshes.length || !window.THREE) return;
   try {
     const img = await loadHeroImage(src);
     if (token !== heroArtToken) return;
@@ -630,8 +605,9 @@ async function setHeroArtwork(i) {
     heroPhotoMeshes.forEach(mesh => {
       const old = mesh.material.map;
       mesh.material.map = tex;
+      mesh.material.color.set(0xffffff);
       mesh.material.needsUpdate = true;
-      if (old && old !== heroBaseMap && typeof old.dispose === 'function') old.dispose();
+      if (old && typeof old.dispose === 'function') old.dispose();
     });
     const maxW = 0.35, maxH = 0.74;
     const r = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
@@ -652,32 +628,34 @@ function initHero3D() {
 
   function onLoad() {
     if (loaded) return;
+    if (!viewer.model) return;
     loaded = true;
     if (loading) loading.classList.add('done');
     const model = viewer.model;
-    const sample = model && heroSampleMesh(model);
-    if (!sample) return;
-    try {
-      const baseMat = heroMaterialOf(sample);
-      if (baseMat && baseMat.map) {
-        heroBaseMap = baseMat.map;
-        heroTexCtor = baseMat.map.constructor;
-        heroTexColorSpace = baseMat.map.colorSpace || 'srgb';
+    if (!window.THREE) {
+      if (loading) loading.textContent = '3D 引擎加载中…';
+      const waitThree = setInterval(() => {
+        if (window.THREE) { clearInterval(waitThree); injectPhoto(); }
+      }, 200);
+      setTimeout(() => { clearInterval(waitThree); }, 15000);
+      return;
+    }
+    injectPhoto();
+
+    function injectPhoto() {
+      try {
+        const boardFront = makeHeroQuad(0.33, 0.76, 0.045, 0.49, 0.393, null, 0xf8f2e7, false);
+        const photoFront = makeHeroQuad(0.30, 0.72, 0.045, 0.49, 0.396, null, 0xffffff, false);
+        const boardBack = makeHeroQuad(0.33, 0.76, 0.045, 0.49, -0.393, null, 0xf8f2e7, true);
+        const photoBack = makeHeroQuad(0.30, 0.72, 0.045, 0.49, -0.396, null, 0xffffff, true);
+        model.add(boardFront, photoFront, boardBack, photoBack);
+        heroPhotoMeshes = [photoFront, photoBack];
+        if (loading) loading.classList.add('done');
+        heroRenderedIndex = -1;
+        renderHero();
+      } catch (err) {
+        console.warn('无法把作品图放进 3D 相框', err);
       }
-      if (!heroTexCtor) {
-        console.warn('无法获取纹理构造函数');
-        return;
-      }
-      const boardFront = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, 0.396, null, 0xf8f2e7, false);
-      const photoFront = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, 0.399, null, 0xffffff, false);
-      const boardBack = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, -0.396, null, 0xf8f2e7, true);
-      const photoBack = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, -0.399, null, 0xffffff, true);
-      model.add(boardFront, photoFront, boardBack, photoBack);
-      heroPhotoMeshes = [photoFront, photoBack];
-      heroRenderedIndex = -1;
-      renderHero();
-    } catch (err) {
-      console.warn('无法把作品图放进 3D 相框', err);
     }
   }
 
@@ -877,84 +855,10 @@ function observeReveals() {
   });
 }
 
-/* ---------- 取画—放画过渡 ---------- */
-function prefersReducedMotion() {
-  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-function flightRect() {
-  const w = Math.min(860, window.innerWidth * .94);
-  const h = Math.min(window.innerHeight * .86, 700);
-  return { left: (window.innerWidth - w) / 2, top: (window.innerHeight - h) / 2, width: w, height: h };
-}
-
-function makeFlight(project, rect, styleClass) {
-  const fly = document.createElement('div');
-  fly.className = 'flight-frame ' + (styleClass || '');
-  const src = (project.image || '').trim();
-  const art = src
-    ? '<img src="' + escapeAttr(src) + '" alt="">'
-    : '<span style="font-family:var(--display);font-size:42px">' + escapeHtml(initialOf(project)) + '</span>';
-  fly.innerHTML = '<div class="flight-art">' + art + '</div><div class="flight-cap">' +
-    escapeHtml(project.title || '未命名作品') + '</div>';
-  fly.style.left = rect.left + 'px';
-  fly.style.top = rect.top + 'px';
-  fly.style.width = rect.width + 'px';
-  fly.style.height = rect.height + 'px';
-  document.body.appendChild(fly);
-  return fly;
-}
-
-function animateFlight(fly, from, to, done) {
-  const animation = fly.animate([
-    { left: from.left + 'px', top: from.top + 'px', width: from.width + 'px', height: from.height + 'px', opacity: 1 },
-    { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', opacity: 1 }
-  ], { duration: 560, easing: 'cubic-bezier(.22,.9,.28,1)' });
-  if (animation.finished && animation.finished.then) animation.finished.then(done, done);
-  else setTimeout(done, 560);
-}
-
+/* ---------- 作品查看入口 ---------- */
 function openWithFlight(gallery, index, origin) {
-  const project = gallery[index];
-  if (!project) return;
-  if (!origin || prefersReducedMotion()) {
-    lastOriginEl = origin || null;
-    lastFlightProject = project;
-    openProject(gallery, index);
-    return;
-  }
-  const from = origin.getBoundingClientRect();
-  const matched = origin.className.match(/style-\w+/);
-  const fly = makeFlight(project, from, matched ? matched[0] : '');
-  origin.style.opacity = '0';
-  animateFlight(fly, from, flightRect(), () => {
-    fly.remove();
-    lastOriginEl = origin;
-    lastFlightProject = project;
-    openProject(gallery, index);
-  });
-}
-
-function flyBack(done) {
-  const origin = lastOriginEl;
-  const project = lastFlightProject;
-  if (!origin || !project || prefersReducedMotion()) {
-    if (origin) origin.style.opacity = '';
-    lastOriginEl = null;
-    lastFlightProject = null;
-    done();
-    return;
-  }
-  const from = flightRect();
-  const to = origin.getBoundingClientRect();
-  const fly = makeFlight(project, from, '');
-  animateFlight(fly, from, to, () => {
-    fly.remove();
-    origin.style.opacity = '';
-    lastOriginEl = null;
-    lastFlightProject = null;
-    done();
-  });
+  lastOriginEl = origin || null;
+  openProject(gallery, index);
 }
 
 /* ---------- 作品查看 ---------- */
@@ -1007,9 +911,8 @@ function openLightbox(index) {
 
 function closeLightbox() {
   if (!lb || lb.hidden) return;
-  const finish = () => { lb.hidden = true; syncBodyLock(); };
-  if (lastOriginEl) flyBack(finish);
-  else finish();
+  lb.hidden = true;
+  syncBodyLock();
 }
 
 function stepLightbox(step) {
@@ -1103,17 +1006,13 @@ function openDetail(project) {
 
 function closeDetail() {
   if (!detailCard || detailCard.hidden) return;
-  const finish = () => {
-    detailCard.classList.remove('open');
-    detailOverlay.classList.remove('show');
-    setTimeout(() => {
-      detailCard.hidden = true;
-      detailOverlay.hidden = true;
-      syncBodyLock();
-    }, 420);
-  };
-  if (lastOriginEl) flyBack(finish);
-  else finish();
+  detailCard.classList.remove('open');
+  detailOverlay.classList.remove('show');
+  setTimeout(() => {
+    detailCard.hidden = true;
+    detailOverlay.hidden = true;
+    syncBodyLock();
+  }, 420);
 }
 
 /* ---------- 中央视图 ---------- */
