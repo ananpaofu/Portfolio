@@ -280,8 +280,10 @@ const HERO_IDS = ['p14', 'p9', 'p15', 'p10', 'p1', 'p11'];
 let heroIndex = 0;
 let heroViewer = null;
 let heroPhotoMesh = null;
-let heroPhotoTexture = null;
 let heroRenderedIndex = -1;
+let heroTexCtor = null;
+let heroTexColorSpace = null;
+let heroBaseMap = null;
 
 function preloadImageRatios() {
   const urls = [...new Set(data.projects.map(p => (p.image || '').trim()).filter(Boolean))];
@@ -326,11 +328,11 @@ function styleFor(project, i) {
 function frameSizeFor(project) {
   const m = imageInfo(project);
   const r = m.ratio || 1;
-  if (r < 0.62) return { w: 220, ar: 0.72 };
-  if (r < 0.92) return { w: 250, ar: Math.max(0.66, r) };
-  if (r > 1.6) return { w: 380, ar: Math.min(1.9, r) };
-  if (r > 1.22) return { w: 330, ar: r };
-  return { w: 280, ar: r };
+  if (r < 0.62) return { w: 275, ar: 0.72 };
+  if (r < 0.92) return { w: 315, ar: Math.max(0.66, r) };
+  if (r > 1.6) return { w: 460, ar: Math.min(1.9, r) };
+  if (r > 1.22) return { w: 400, ar: r };
+  return { w: 345, ar: r };
 }
 
 const lb = document.getElementById('lightbox');
@@ -497,14 +499,14 @@ function renderMainWorks() {
   if (!grid) return;
   mainGallery = orderedMainProjects();
   grid.innerHTML = mainGallery.map((p, i) => {
-    const tags = (p.tags || []).filter(Boolean).slice(0, 3)
-      .map(t => '<span>' + escapeHtml(t) + '</span>').join('');
     const action = (p.link || '').trim()
       ? '<a class="frame-link" href="' + escapeAttr(p.link.trim()) + '" target="_blank" rel="noopener noreferrer" data-stoplb>打开项目 ↗</a>'
       : '<button class="frame-link" type="button" data-stoplb>' + (p.detail ? '阅读项目故事 ↗' : '查看高清图 ↗') + '</button>';
     const frameStyle = styleFor(p, i);
-    const cover = imageInfo(p).ratio < 0.62 ? ' is-cover' : '';
+    const info = imageInfo(p);
+    const cover = info.ratio < 0.62 ? ' is-cover' : '';
     const dims = frameSizeFor(p);
+    const noteOrient = info.ratio > 1.18 ? 'note-horizontal' : 'note-vertical';
     const rots = [-0.6, 0.5, -0.4, 0.6, -0.5, 0.4];
     const tys = [0, 6, -5, 5, -3, 4];
     const noteRots = [-0.8, .6, -.5, .8, -.6, .5];
@@ -515,15 +517,14 @@ function renderMainWorks() {
     const rot = rots[i % rots.length];
     const ty = tys[i % tys.length];
     const sc = scatters[i % scatters.length];
-    return '<article class="work-frame ' + frameStyle + ' reveal" style="--ar:' + dims.ar + ';--fwpx:' + dims.w +
+    return '<article class="work-frame ' + frameStyle + ' ' + noteOrient + ' reveal" style="--ar:' + dims.ar + ';--fwpx:' + dims.w +
       'px;--rot:' + rot + 'deg;--ty:' + ty + 'px;--noter:' + noteRots[i % noteRots.length] +
       'deg;--assx:' + sc.x + 'px;--assy:' + sc.y + 'px;--assr:' + sc.r + 'deg;--asss:.88" data-index="' + i + '" tabindex="0" role="button" aria-label="查看 ' + escapeAttr(p.title || '作品') + '">' +
       '<div class="frame-object ' + frameStyle + '"><div class="frame-mat"><div class="frame-media' + cover + '">' + mediaMarkup(p, 'ph') + '</div></div></div>' +
       '<aside class="frame-note">' +
+        '<span class="note-hole" aria-hidden="true"></span>' +
         '<div class="frame-meta"><span class="frame-no">NO.' + String(i + 1).padStart(2, '0') + '</span><span>' + escapeHtml(p.category || '作品') + ' · ' + escapeHtml(p.year || '') + '</span></div>' +
         '<h3 class="frame-title">' + escapeHtml(p.title || '未命名作品') + '</h3>' +
-        '<p class="frame-desc">' + escapeHtml(p.desc || '') + '</p>' +
-        (tags ? '<div class="frame-tags">' + tags + '</div>' : '') +
         action +
       '</aside>' +
     '</article>';
@@ -588,7 +589,7 @@ function makeHeroQuad(sample, w, h, x, y, z, texture, color) {
     -w / 2, -h / 2, 0, w / 2, -h / 2, 0, w / 2, h / 2, 0, -w / 2, h / 2, 0
   ]), 3));
   geo.setAttribute('normal', new Attr(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]), 3));
-  geo.setAttribute('uv', new Attr(new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]), 2));
+  geo.setAttribute('uv', new Attr(new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), 2));
   geo.setIndex([0, 1, 2, 0, 2, 3]);
   const params = { metalness: 0, roughness: 1, side: 2, toneMapped: false };
   if (texture) params.map = texture; else params.color = color;
@@ -601,19 +602,23 @@ async function setHeroArtwork(i) {
   const token = ++heroArtToken;
   const p = heroProjectAt(i);
   const src = p && (p.image || '').trim();
-  if (!src || !heroPhotoTexture) return;
+  if (!src || !heroPhotoMesh || !heroTexCtor) return;
   try {
     const img = await loadHeroImage(src);
     if (token !== heroArtToken) return;
-    heroPhotoTexture.image = img;
-    heroPhotoTexture.needsUpdate = true;
-    if (heroPhotoMesh) {
-      const maxW = 0.35, maxH = 0.74;
-      const r = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
-      let w = maxW, h = w / r;
-      if (h > maxH) { h = maxH; w = h * r; }
-      heroPhotoMesh.scale.set(w / maxW, h / maxH, 1);
-    }
+    const tex = new heroTexCtor(img);
+    if (heroTexColorSpace && 'colorSpace' in tex) tex.colorSpace = heroTexColorSpace;
+    tex.anisotropy = 8;
+    tex.needsUpdate = true;
+    const old = heroPhotoMesh.material.map;
+    heroPhotoMesh.material.map = tex;
+    heroPhotoMesh.material.needsUpdate = true;
+    if (old && old !== heroBaseMap && typeof old.dispose === 'function') old.dispose();
+    const maxW = 0.35, maxH = 0.74;
+    const r = (img.naturalWidth && img.naturalHeight) ? img.naturalWidth / img.naturalHeight : 1;
+    let w = maxW, h = w / r;
+    if (h > maxH) { h = maxH; w = h * r; }
+    heroPhotoMesh.scale.set(w / maxW, h / maxH, 1);
   } catch (err) {
     console.warn('首屏作品图加载失败', err);
   }
@@ -636,13 +641,14 @@ function initHero3D() {
     try {
       const baseMat = heroMaterialOf(sample);
       if (!baseMat.map) return;
-      const tex = baseMat.map.clone();
-      const board = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, 0.389, null, 0xf8f2e7);
-      const photo = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, 0.392, tex, null);
+      heroBaseMap = baseMat.map;
+      heroTexCtor = baseMat.map.constructor;
+      heroTexColorSpace = baseMat.map.colorSpace || 'srgb';
+      const board = makeHeroQuad(sample, 0.39, 0.79, 0, 0.49, 0.390, null, 0xf8f2e7);
+      const photo = makeHeroQuad(sample, 0.35, 0.74, 0, 0.49, 0.393, null, 0xffffff);
       model.add(board);
       model.add(photo);
       heroPhotoMesh = photo;
-      heroPhotoTexture = tex;
       heroRenderedIndex = -1;
       renderHero();
     } catch (err) {
@@ -706,7 +712,7 @@ function renderJourney() {
     if (!p) return '';
     const sec = p.detail && p.detail.sections && p.detail.sections[0];
     const evidence = sec ? (sec.h + ' · ' + sec.p) : (p && p.desc || '');
-    return '<article class="journey-step">' +
+    return '<article class="journey-step reveal" style="--assx:' + ((Number(s.num) % 2 ? -1 : 1) * 36) + 'px;--assr:' + ((Number(s.num) % 2 ? -1 : 1) * 1.4) + 'deg">' +
       '<div class="js-thumb"><img src="' + escapeAttr(p.image || '') + '" alt="' + escapeAttr(p.title || '') + '" loading="lazy"><span>' + escapeHtml(p.category || '作品') + '</span></div>' +
       '<div class="js-body"><span class="js-num">' + s.num + '</span><h3>' + escapeHtml(s.title) + '</h3><p>' + escapeHtml(s.text) + '</p>' +
       '<p class="js-evidence">' + escapeHtml(evidence) + '</p>' +
@@ -719,8 +725,40 @@ function renderJourney() {
       if (p) openProject([p], 0);
     });
   });
+  box.querySelectorAll('.journey-step').forEach(card => {
+    const thumb = card.querySelector('.js-thumb img');
+    if (!thumb) return;
+    card.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch') return;
+      const r = card.getBoundingClientRect();
+      const dx = (e.clientX - r.left) / r.width - 0.5;
+      const dy = (e.clientY - r.top) / r.height - 0.5;
+      thumb.style.transform = 'scale(1.08) translate(' + (dx * 8) + 'px,' + (dy * 8) + 'px)';
+    });
+    card.addEventListener('pointerleave', () => { thumb.style.transform = ''; });
+  });
   const stat = document.getElementById('statWorks');
-  if (stat) stat.textContent = String(data.projects.length).padStart(2, '0');
+  if (stat) {
+    const target = data.projects.length;
+    stat.textContent = String(target).padStart(2, '0');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        const start = performance.now();
+        const dur = 1100;
+        const tick = now => {
+          const t = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - t, 3);
+          stat.textContent = String(Math.round(target * eased)).padStart(2, '0');
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }, { threshold: 0.5 });
+      io.observe(stat);
+    }
+  }
+  observeReveals();
 }
 
 function renderFilters() {
